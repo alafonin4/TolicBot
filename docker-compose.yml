@@ -6,15 +6,15 @@ services:
     depends_on:
       - db
     environment:
-      - DB_URL=jdbc:postgresql://db:5432/your_db
+      - DB_URL=jdbc:postgresql://db:5432/postgres
       - DB_USER=postgres
       - DB_PASSWORD=tgbot
 
   db:
     image: postgres:13
     environment:
-      POSTGRES_DB: your_db
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tgbot
     ports:
       - "5432:5432"
