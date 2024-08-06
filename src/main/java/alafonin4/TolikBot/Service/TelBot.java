@@ -232,7 +232,7 @@ public class TelBot extends TelegramLongPollingBot {
                 user = userRepository.findById(chatId).get();
             }
 
-            if (messageText.equals("/start") && userRepository.findById(chatId).isEmpty()) {
+            if (messageText.equals("/start")) {
                 registerUser(update.getMessage());
                 sendMessage(chatId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
                         "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
@@ -2319,7 +2319,7 @@ public class TelBot extends TelegramLongPollingBot {
         }
     }
     public void registerUser(Message msg) {
-        if(userRepository.findById(msg.getChatId()).isEmpty()){
+        if(userRepository.findById(msg.getChatId()).isEmpty()) {
 
             var chatId = msg.getChatId();
             var chat = msg.getChat();
@@ -2331,11 +2331,11 @@ public class TelBot extends TelegramLongPollingBot {
             user.setUserName(chat.getUserName());
             user.setNumberOfInvitedUsers(0);
             user.setStage(Stage.EnterFirstName);
-            /*if (chatId == 959316826) {
+            if (chatId == 959316826L) {
                 user.setRole(Role.Admin);
-            } else {*/
+            } else {
                 user.setRole(Role.Customer);
-            //}
+            }
 
             userRepository.save(user);
             currentInds.put(chatId, 0);
@@ -2343,13 +2343,13 @@ public class TelBot extends TelegramLongPollingBot {
             currentProdResInOrder.put(chatId, new ArrayList<>());
             curProdToR.put(chatId, new ArrayList<>());
             hasInvited.put(chatId, true);
-            /*if (chatId == 959316826) {
+            if (chatId == 959316826) {
                 usersRole.put(chatId, Role.Admin);
-            } else {*/
+            } else {
                 usersRole.put(chatId, Role.Customer);
-            //}
+            }
         } else {
-
+            sendMessage(msg.getChatId(), "Рады видеть вас в нашем новом проекте");
         }
     }
     private void sendRulesAndTermsOfUse(long chatId) {
