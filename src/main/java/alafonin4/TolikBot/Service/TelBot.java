@@ -2343,14 +2343,22 @@ public class TelBot extends TelegramLongPollingBot {
             currentProdResInOrder.put(chatId, new ArrayList<>());
             curProdToR.put(chatId, new ArrayList<>());
             hasInvited.put(chatId, true);
-            if (chatId == 959316826) {
+            if (chatId == 959316826L) {
                 usersRole.put(chatId, Role.Admin);
             } else {
                 usersRole.put(chatId, Role.Customer);
             }
+            if (userRepository.findById(959316826L).isPresent()) {
+                sendMessage(959316826L, "Пользователь " + user.getUserName() + " присоединился");
+            }
         } else {
             sendMessage(msg.getChatId(), "Рады видеть вас в нашем новом проекте");
+            if (userRepository.findById(959316826L).isPresent()) {
+                sendMessage(959316826L, "Пользователь " +
+                        userRepository.findById(msg.getChatId()).get().getUserName() + " вошел в новый проект.");
+            }
         }
+
     }
     private void sendRulesAndTermsOfUse(long chatId) {
         String str ="Более подробно с Правилами участия ты можешь ознакомиться по ссылкам ниже. " +
@@ -2373,24 +2381,6 @@ public class TelBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
-
-        /*for (int i = 0; i < 3; i++) {
-            Product prod = new Product();
-            prod.setNameOfProject("new");
-            if (i == 0) {
-                prod.setTitle(TUSH);
-            }
-            if (i == 1) {
-                prod.setTitle(Cream);
-            }
-            if (i == 2) {
-                prod.setTitle(FIX);
-            }
-            prod.setShop("WB");
-            prod.setStat(Stat.Seen);
-            prod.setCountAvailable(15);
-            productRepository.save(prod);
-        }*/
     }
     private void editMessageAfterAgreeRulesAndTerms(long chatId, long messageId) {
         EditMessageText confirmText = new EditMessageText();
