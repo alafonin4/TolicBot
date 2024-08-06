@@ -122,7 +122,19 @@ public class TelBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         long chId = update.getMessage().getChatId();
-        User userkod = userRepository.findById(chId).get();
+        String messageText = update.getMessage().getText();
+        Optional<User> user = userRepository.findById(chId);
+        if (messageText.equals("/start") && user.isEmpty()) {
+            registerUser(update.getMessage());
+            sendMessage(chId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
+                    "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
+                    "Здесь ты сможешь попробовать \uD83E\uDDF4уходовую косметику «Professor SkinGood», " +
+                    "\uD83D\uDCAC поделиться своим мнением о ней и \uD83C\uDF89 выиграть призы! " +
+                    "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
+                    "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
+            sendRulesAndTermsOfUse(chId);
+        }
+        User userkod = user.get();
         Role role = userkod.getRole();
         if (role.equals(Role.Customer)) {
             getUpdateFromCustomer(update);
