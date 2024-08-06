@@ -9,7 +9,7 @@ services:
       - DB_URL=jdbc:postgresql://db:5432/postgres
       - DB_USER=postgres
       - DB_PASSWORD=tgbot
-
+      
   db:
     image: postgres:13
     environment:
@@ -18,4 +18,9 @@ services:
       POSTGRES_PASSWORD: tgbot
     ports:
       - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
 
