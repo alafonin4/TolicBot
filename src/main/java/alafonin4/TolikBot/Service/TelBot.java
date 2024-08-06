@@ -133,6 +133,7 @@ public class TelBot extends TelegramLongPollingBot {
                     "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
                     "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
             sendRulesAndTermsOfUse(chId);
+            return;
         }
         User userkod = user.get();
         Role role = userkod.getRole();
