@@ -43,9 +43,6 @@ public class TelBot extends TelegramLongPollingBot {
     //private static final String CHANGE = EmojiParser.parseToUnicode(":page_facing_up:" + "изменение списка товаров");
     private static final String URL_To_Rules = "https://disk.yandex.ru/d/9g5olrg5l-o-lA";
     private static final String URL_TO_TERMS_OF_USE = "https://disk.yandex.ru/i/Yj_1_zmT3eQtfA";
-    private static final String TUSH = "Тушь для ресниц FUTURISTIC удлиняющая стойкая 5G volume эффект";
-    private static final String Cream = "Тональный крем для лица SKIN FUTURE матовый";
-    private static final String FIX = "Фиксатор макияжа FIXING SPRAY HYDRA увлажняющий тонизирующий спрей ";
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -124,6 +121,18 @@ public class TelBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        long chId = update.getMessage().getChatId();
+        User userkod = userRepository.findById(chId).get();
+        Role role = userkod.getRole();
+        if (role.equals(Role.Customer)) {
+            getUpdateFromCustomer(update);
+        } else if (role.equals(Role.Moderator)) {
+            getUpdateFromModerator(update);
+        } else if (role.equals(Role.Admin)) {
+            getUpdateFromAdministrator(update);
+        }
+    }
+    private void getUpdateFromCustomer(Update update) {
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
@@ -229,11 +238,7 @@ public class TelBot extends TelegramLongPollingBot {
             if (!messageText.equals("/start")) {
                 user = userRepository.findById(chatId).get();
             }
-            if (messageText.equals(MODERATION)) {
-                moderation(chatId);
-            } else if (messageText.equals(EMPLOYEE)) {
-                employeeManagement(chatId);
-            } else if (messageText.equals(SENDORDERIMAGE)) {
+            if (messageText.equals(SENDORDERIMAGE)) {
                 curCat.put(chatId, 0);
                 user.setStage(Stage.EnterImageOrder);
                 userRepository.save(user);
@@ -243,159 +248,77 @@ public class TelBot extends TelegramLongPollingBot {
                 user.setStage(Stage.EnterImageReview);
                 userRepository.save(user);
                 sendReview(chatId);
-            } else if (messageText.equals(CHANGE)) {
-                ChangeListOfProducts(chatId);
             } else if (messageText.equals(PRODUCT)) {
                 showProductList(chatId);
             } else if (messageText.equals(ASKTOLIC)) {
                 AskTolic(chatId);
             } else {
-            switch (messageText) {
-                case "/start":
-                    registerUser(update.getMessage());
-                    sendMessage(chatId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
-                            "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
-                            "Здесь ты сможешь попробовать \uD83E\uDDF4уходовую косметику «Professor SkinGood», " +
-                            "\uD83D\uDCAC поделиться своим мнением о ней и \uD83C\uDF89 выиграть призы! " +
-                            "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
-                            "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
-                    sendRulesAndTermsOfUse(chatId);
-                    break;
-                case "/rules":
-                    sendRules(chatId);
-                    break;
-                case "/policy":
-                    sendTermsOfUse(chatId);
-                    break;
-                case "/info":
-                    sendInfo(chatId);
-                    break;
-                case "/product":
-                    showProductList(chatId);
-                    break;
-                case "/moderation":
-                    moderation(chatId);
-                    break;
-                case "/employee":
-                    employeeManagement(chatId);
-                    break;
-                case "/review":
-                    curCat.put(chatId, 1);
-                    user.setStage(Stage.EnterImageReview);
-                    userRepository.save(user);
-                    sendReview(chatId);
-                    break;
-                case "/screen":
-                    curCat.put(chatId, 0);
-                    user.setStage(Stage.EnterImageOrder);
-                    userRepository.save(user);
-                    sendScreen(chatId);
-                    break;
-                case "/ok":
-                    sendInfo(chatId);
-                    break;
-                case "/change":
-                    ChangeListOfProducts(chatId);
-                    break;
-                case "/help":
-                    AskTolic(chatId);
-                    break;
-                default:
-                    if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
-                        SetUserName(chatId, messageText);
-                        greatings(chatId);
-                        friendInviteYou(chatId);
+                switch (messageText) {
+                    case "/start":
+                        registerUser(update.getMessage());
+                        sendMessage(chatId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
+                                "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
+                                "Здесь ты сможешь попробовать \uD83E\uDDF4уходовую косметику «Professor SkinGood», " +
+                                "\uD83D\uDCAC поделиться своим мнением о ней и \uD83C\uDF89 выиграть призы! " +
+                                "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
+                                "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
+                        sendRulesAndTermsOfUse(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
-                        SetUserNameOfFriend(chatId, messageText);
-                        send(chatId);
-                        sendFirstPageOfProgram(chatId);
+                    case "/rules":
+                        sendRules(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.ChangingList) && !messageText.startsWith("/")) {
-                        PrintListOfProducts(chatId, messageText);
+                    case "/policy":
+                        sendTermsOfUse(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNameOfItemToAdd) && !messageText.startsWith("/")) {
-                        newItem(chatId, messageText);
+                    case "/info":
+                        sendInfo(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterShopOfItemToAdd) && !messageText.startsWith("/")) {
-                        setShopToItem(chatId, messageText);
+                    case "/product":
+                        showProductList(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountOfItemToAdd) && !messageText.startsWith("/")) {
-                        setCountToItem(chatId, messageText);
-                        break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
-                        User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
-                        userRepository.save(user2);
-                        Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
-                        order.setStatus(Status.Disapproved);
-                        orderRepository.save(order);
-                        sendMessage(order.getUser().getChatId(), "Заказ отклонен по причине:\n" + messageText);
-                        break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
-                        User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
-                        userRepository.save(user2);
-                        Review order = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
-                        order.setStatus(Status.Disapproved);
-                        reviewRepository.save(order);
-                        sendMessage(order.getUser().getChatId(), "Отзыв отклонен по причине:\n" + messageText);
-                        break;
-                    } else if (user.getStage().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
-                        user.setStage(Stage.DoingNothing);
+                    case "/review":
+                        curCat.put(chatId, 1);
+                        user.setStage(Stage.EnterImageReview);
                         userRepository.save(user);
-                        if(userRepository.findById(chatId).isPresent()){
-                            Question q = new Question();
-                            q.setCreatedAt(LocalDateTime.now());
-                            q.setStatus(Status.Unseen);
-                            q.setQue(messageText);
-                            User u = userRepository.findById(chatId).get();
-                            q.setUser(u);
-                            questionRepository.save(q);
-                            sendMessage(chatId, "Я скоро вернусь! Передал твой вопрос человеку!");
-                        }
+                        sendReview(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
-                        User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
-                        userRepository.save(user2);
-                        Question unseenQuestion = questionRepository
-                                .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
-                        unseenQuestion.setStatus(Status.Approved);
-                        User u = unseenQuestion.getUser();
-                        Answer answer = new Answer();
-                        answer.setAnswer(messageText);
-                        answer.setQuestion(unseenQuestion);
-                        answer.setUser(u);
-                        answer.setUs(userRepository.findById(chatId).get());
-                        answerRepository.save(answer);
-                        questionRepository.save(unseenQuestion);
-                        sendMessage(u.getChatId(), "Ответ на ваш вопрос:\n" + messageText);
-                        showListOfUnseenQuestions(chatId);
+                    case "/screen":
+                        curCat.put(chatId, 0);
+                        user.setStage(Stage.EnterImageOrder);
+                        userRepository.save(user);
+                        sendScreen(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
-                        User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
-                        userRepository.save(user2);
-                        Integer cost = Integer.parseInt(messageText);
-                        var res = reservationToPay.get(user2.getChatId());
-                        var list = productReservationRepository.findByReservation(res);
-                        for (var i:
-                             list) {
-                            i.setCost(cost);
-                            productReservationRepository.save(i);
-                        }
-                        showListOfUnseenOrders(chatId);
+                    case "/help":
+                        AskTolic(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNewAdminUser) && !messageText.startsWith("/")) {
-                        newAdministrator(chatId, messageText);
+                    default:
+                        if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                            SetUserName(chatId, messageText);
+                            greatings(chatId);
+                            friendInviteYou(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                            SetUserNameOfFriend(chatId, messageText);
+                            send(chatId);
+                            sendFirstPageOfProgram(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
+                            user.setStage(Stage.DoingNothing);
+                            userRepository.save(user);
+                            if(userRepository.findById(chatId).isPresent()){
+                                Question q = new Question();
+                                q.setCreatedAt(LocalDateTime.now());
+                                q.setStatus(Status.Unseen);
+                                q.setQue(messageText);
+                                User u = userRepository.findById(chatId).get();
+                                q.setUser(u);
+                                questionRepository.save(q);
+                                sendMessage(chatId, "Я скоро вернусь! Передал твой вопрос человеку!");
+                            }
+                            break;
+                        } 
+                        sendMessage(chatId, "Извините, команда не распознана.");
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
-                        newModerator(chatId, messageText);
-                        break;
-                    }
-                    sendMessage(chatId, "Извините, команда не распознана.");
-                    break;
                 }
             }
         } else if (update.hasCallbackQuery()) {
@@ -422,14 +345,13 @@ public class TelBot extends TelegramLongPollingBot {
 
                 var ind = 0;
                 for (var i:
-                     currentProdResInOrder.get(chatId)) {
+                        currentProdResInOrder.get(chatId)) {
                     if (i.getId().equals(indOfProductRes)) {
                         createOrder(chatId, ind);
                         break;
                     }
                     ind++;
                 }
-                //createOrder(chatId, ind);
                 return;
             }
             if (callbackData.startsWith("review_")) {
@@ -445,25 +367,9 @@ public class TelBot extends TelegramLongPollingBot {
                     }
                     ind++;
                 }
-                //createOrder(chatId, ind);
                 return;
             }
-            if (callbackData.startsWith("addShop_")) {
-                String number = callbackData.substring(8);
-                long indOfProduct = Integer.parseInt(number);
-                Product pr = productRepository.findById(indOfProduct).get();
-                Product p = new Product();
-                p.setTitle(pr.getTitle());
-                p.setNameOfProject(pr.getNameOfProject());
-                curProd.put(chatId, p);
 
-                sendMessage(chatId, "Введите название магазина, в котором продается продукт");
-
-                User u = userRepository.findById(chatId).get();
-                u.setStage(Stage.EnterShopOfItemToAdd);
-                userRepository.save(u);
-                return;
-            }
             if (callbackData.startsWith("shop_")) {
                 String number = callbackData.substring(5);
                 long indOfProduct = Integer.parseInt(number);
@@ -497,6 +403,631 @@ public class TelBot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
+                return;
+            }
+            switch (callbackData) {
+                case "Confirm":
+                    editMessageAfterAgreeRulesAndTerms(chatId, messageId);
+                    setUserCommands(chatId);
+                    tryToGetAcquainted(chatId);
+                    break;
+                case "AddToOrder":
+                    sendMessage(chatId, "Отправьте ещё изображение по этому заказу");
+                    break;
+                case "FinishOrder":
+                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь, не волнуйся, если это " +
+                            "займет 1-2 дня.\n" +
+                            "\n" +
+                            "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
+                            "написав сюда /help.");
+                    createOrder(chatId, currentIndInList.get(chatId));
+
+                    int inde = currentIndInList.get(chatId);
+                    var li = currentProdResInOrder.get(chatId);
+                    li.remove(inde);
+                    if (inde > li.size() - 1) {
+                        inde = 0;
+                        currentIndInList.put(chatId, inde);
+                    }
+
+                    curImageInOrder.put(chatId, new ArrayList<>());
+                    break;
+                case "No":
+                    editMessageAfterChooseInvited(chatId, messageId);
+                    inviteFriend(chatId);
+                    startTalkingAboutProgram(chatId);
+                    break;
+                case "Yes":
+                    User user1 = userRepository.findById(chatId).get();
+                    user1.setStage(Stage.EnterUserNameOfFriend);
+                    userRepository.save(user1);
+                    editMessageAfterChooseInvited(chatId, messageId);
+                    invitedByFriend(chatId);
+                    break;
+                case "SendScreenshots":
+                    sendScreen(chatId);
+                    break;
+                case "Next":
+                    int cur = currentInds.get(chatId);
+                    currentInds.put(chatId, cur + 1);
+                    getTextOfProgramPage(chatId, messageId);
+                    break;
+                case "finishToChooseItems":
+                    List<List<Product>> products = curProdToR.get(chatId);
+                    String text = "Выберите магазин у товара: ";
+                    List<Button> buttons = new ArrayList<>();
+                    int ind = 0;
+                    int i = 1;
+                    for (var product:
+                            products.get(ind)) {
+                        if (i==1) {
+                            text += product.getTitle();
+                            i = 0;
+                        }
+                        Button newButton = new Button(product.getShop(), "shop_" + product.getId() + "_" + ind);
+                        buttons.add(newButton);
+                    }
+
+                    if (products.size() > 1) {
+                        Button newButton = new Button("Пропустить", "skip_" + ind);
+                        buttons.add(newButton);
+                    }
+                    SendMessage message = new SendMessage();
+                    message.setChatId(String.valueOf(chatId));
+                    message.setText(text);
+                    InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+                    message.setReplyMarkup(markup);
+
+                    try {
+                        execute(message);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "sentItAll":
+                    User u = userRepository.findById(chatId).get();
+                    u.setStage(Stage.EnterUserNameOfFriend);
+                    userRepository.save(u);
+                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь. " +
+                            "Не волнуйся, если это займет 1-2 дня. Я вернусь к тебе, как только человек проверит " +
+                            "корректность скрина и учтет всю информацию.");
+                    sendMessage(chatId, "\uD83C\uDF8A Модерация всех твоих отзывов пройдена! \uD83C\uDF8A");
+                    sendTextsAfterModerationReview(chatId);
+                    break;
+                case "newOrder":
+                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь, не волнуйся, если это " +
+                            "займет 1-2 дня.\n" +
+                            "\n" +
+                            "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
+                            "написав сюда /help.");
+                    createOrder(chatId, currentIndInList.get(chatId));
+
+                    int index = currentIndInList.get(chatId);
+                    var l = currentProdResInOrder.get(chatId);
+                    l.remove(index);
+                    if (index > l.size() - 1) {
+                        index = 0;
+                        currentIndInList.put(chatId, index);
+                    }
+
+                    curImageInOrder.put(chatId, new ArrayList<>());
+                    String t = "\nОтправьте скрин для товара: " + l.get(index).getProduct().getTitle();
+
+                    index++;
+                    SendMessage mess = new SendMessage();
+                    mess.setChatId(String.valueOf(chatId));
+                    mess.setText(t);
+                    Button yesButton = new Button("Пропустить", "skipOrder_" + index);
+                    List<Button> butts = new ArrayList<>();
+                    butts.add(yesButton);
+                    InlineKeyboardMarkup ma = KeyboardMarkupBuilder.setKeyboard(butts);
+                    mess.setReplyMarkup(ma);
+
+                    try {
+                        execute(mess);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "WantMore":
+                    sendTextAfterMore(chatId);
+                    break;
+                case "End":
+                    sendTextAfterEnd(chatId);
+                    break;
+                case "AskQuestion":
+                    AskQuestion(chatId);
+                    break;
+                case "endToDoReservations":
+                    endToDoReservations(chatId, m);
+                    break;
+                default:
+                    sendMessage(chatId, "Извините, команда не распознана.");
+                    break;
+            }
+        }
+    }
+    private void getUpdateFromModerator(Update update) {
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            long chatId = update.getMessage().getChatId();
+            String messageText = update.getMessage().getText();
+
+            User user = new User();
+            if (!messageText.equals("/start")) {
+                user = userRepository.findById(chatId).get();
+            }
+            if (messageText.equals(MODERATION)) {
+                moderation(chatId);
+            } else {
+                switch (messageText) {
+                    case "/start":
+                        registerUser(update.getMessage());
+                        sendMessage(chatId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
+                                "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
+                                "Здесь ты сможешь попробовать \uD83E\uDDF4уходовую косметику «Professor SkinGood», " +
+                                "\uD83D\uDCAC поделиться своим мнением о ней и \uD83C\uDF89 выиграть призы! " +
+                                "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
+                                "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
+                        sendRulesAndTermsOfUse(chatId);
+                        break;
+                    case "/rules":
+                        sendRules(chatId);
+                        break;
+                    case "/policy":
+                        sendTermsOfUse(chatId);
+                        break;
+                    case "/info":
+                        sendInfo(chatId);
+                        break;
+                    case "/moderation":
+                        moderation(chatId);
+                        break;
+                    default:
+                        if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                            SetUserName(chatId, messageText);
+                            greatings(chatId);
+                            friendInviteYou(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                            SetUserNameOfFriend(chatId, messageText);
+                            send(chatId);
+                            sendFirstPageOfProgram(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            order.setStatus(Status.Disapproved);
+                            orderRepository.save(order);
+                            sendMessage(order.getUser().getChatId(), "Заказ отклонен по причине:\n" + messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Review order = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            order.setStatus(Status.Disapproved);
+                            reviewRepository.save(order);
+                            sendMessage(order.getUser().getChatId(), "Отзыв отклонен по причине:\n" + messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Question unseenQuestion = questionRepository
+                                    .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            unseenQuestion.setStatus(Status.Approved);
+                            User u = unseenQuestion.getUser();
+                            Answer answer = new Answer();
+                            answer.setAnswer(messageText);
+                            answer.setQuestion(unseenQuestion);
+                            answer.setUser(u);
+                            answer.setUs(userRepository.findById(chatId).get());
+                            answerRepository.save(answer);
+                            questionRepository.save(unseenQuestion);
+                            sendMessage(u.getChatId(), "Ответ на ваш вопрос:\n" + messageText);
+                            showListOfUnseenQuestions(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Integer cost = Integer.parseInt(messageText);
+                            var res = reservationToPay.get(user2.getChatId());
+                            var list = productReservationRepository.findByReservation(res);
+                            for (var i:
+                                    list) {
+                                i.setCost(cost);
+                                productReservationRepository.save(i);
+                            }
+                            showListOfUnseenOrders(chatId);
+                            break;
+                        }
+                        sendMessage(chatId, "Извините, команда не распознана.");
+                        break;
+                }
+            }
+        } else if (update.hasCallbackQuery()) {
+            String callbackData = update.getCallbackQuery().getData();
+            var m = update.getCallbackQuery().getMessage();
+            long messageId = update.getCallbackQuery().getMessage().getMessageId();
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+            if (callbackData.startsWith("product_")) {
+                String number = callbackData.substring(8);
+                long id = Integer.parseInt(number);
+                var product = productRepository.findById(id);
+                Product pr = product.get();
+                var products = productRepository.findAllByTitle(pr.getTitle());
+                var prList = curProdToR.get(chatId);
+                prList.add(products);
+                curProdToR.put(chatId, prList);
+                return;
+            }
+            if (callbackData.startsWith("Approver_")) {
+                String[] arr = (callbackData.substring(9)).split(" ");
+                long numberOfRes = Integer.parseInt(arr[0]);
+                long numberOfOrd = Integer.parseInt(arr[1]);
+                Review or = reviewRepository.findById(numberOfOrd).get();
+                Reservation res = reservationRepository.findById(numberOfRes).get();
+                res.setStatus(Status.Approved);
+                or.setStatus(Status.Approved);
+                reviewRepository.save(or);
+                reservationRepository.save(res);
+                User u = or.getUser();
+
+                User user2 = userRepository.findById(chatId).get();
+                user2.setStage(Stage.DoingNothing);
+                userRepository.save(user2);
+                sendMessage(u.getChatId(), "\uD83C\uDF8A Модерация всех " +
+                        "твоих отзывов пройдена! \uD83C\uDF8A\n");
+                showListOfUnseenReviews(chatId);
+                return;
+            }
+            if (callbackData.startsWith("Disapprover_")) {
+                String arr = callbackData.substring(12);
+                long numberOfRes = Integer.parseInt(arr);
+                Review or = reviewRepository.findById(numberOfRes).get();
+                User u = or.getUser();
+
+                var prRes = or.getProductReservation().getReservation();
+                var list = new ArrayList<ProductReservation>();
+                ProductReservation pr = new ProductReservation();
+                Reservation r = new Reservation();
+                r.setUser(u);
+                r.setStatus(prRes.getStatus());
+                r.setCreatedAt(LocalDateTime.now());
+                reservationRepository.save(r);
+
+                pr.setReservation(r);
+                pr.setProduct(or.getProductReservation().getProduct());
+                pr.setQuantity(or.getProductReservation().getQuantity());
+                productReservationRepository.save(pr);
+                list.add(pr);
+                currentProdResInReview.put(u.getChatId(), list);
+
+                setReasonForRejectingReview(chatId, u.getChatId());
+                return;
+            }
+            if (callbackData.startsWith("Approved_")) {
+                String[] arr = (callbackData.substring(9)).split(" ");
+                long numberOfRes = Integer.parseInt(arr[0]);
+                long numberOfOrd = Integer.parseInt(arr[1]);
+                Order or = orderRepository.findById(numberOfOrd).get();
+                Reservation res = reservationRepository.findById(numberOfRes).get();
+                res.setStatus(Status.Approved);
+                or.setStatus(Status.Approved);
+                orderRepository.save(or);
+                reservationRepository.save(res);
+                User u = or.getUser();
+
+                sendMessage(chatId, "Введите стоимость товара из чека");
+                User user2 = userRepository.findById(chatId).get();
+                user2.setStage(Stage.EnterCostOfItem);
+                reservationToPay.put(user2.getChatId(), res);
+                userRepository.save(user2);
+                sendMessage(u.getChatId(), "\uD83C\uDF89 Спасибо. Модерация пройдена и я забронировал тебе возмещение. \n" +
+                        "\n" +
+                        "\uD83D\uDCAC Переходи к написанию отзывов. \n" +
+                        "\n" +
+                        "\uD83D\uDE42 Я буду ждать скриншоты твоих опубликованных отзывов на том же сайте, " +
+                        "где была осуществлена покупка \uD83D\uDCA1 Ты можешь их отправлять так, как тебе " +
+                        "удобно – по факту публикации каждого или все вместе. Пожалуйста, помни, что возмещение " +
+                        "по каждому продукту я смогу отправить после проверки отзыва на него.");
+                return;
+            }
+            if (callbackData.startsWith("Disapproved_")) {
+                String arr = callbackData.substring(12);
+                long numberOfRes = Integer.parseInt(arr);
+                Order or = orderRepository.findById(numberOfRes).get();
+                User u = or.getUser();
+
+                var prRes = or.getProductReservation().getReservation();
+                var list = new ArrayList<ProductReservation>();
+                ProductReservation pr = new ProductReservation();
+                Reservation r = new Reservation();
+                r.setUser(u);
+                r.setStatus(prRes.getStatus());
+                r.setCreatedAt(LocalDateTime.now());
+                reservationRepository.save(r);
+
+                pr.setReservation(r);
+                pr.setProduct(or.getProductReservation().getProduct());
+                pr.setQuantity(or.getProductReservation().getQuantity());
+                productReservationRepository.save(pr);
+                list.add(pr);
+                currentProdResInOrder.put(u.getChatId(), list);
+
+                setReasonForRejectingOrder(chatId, u.getChatId());
+                return;
+            }
+            switch (callbackData) {
+                case "Confirm":
+                    editMessageAfterAgreeRulesAndTerms(chatId, messageId);
+                    setUserCommands(chatId);
+                    tryToGetAcquainted(chatId);
+                    break;
+                case "orders":
+                    showListOfUnseenOrders(chatId);
+                    break;
+                case "reviews":
+                    showListOfUnseenReviews(chatId);
+                    break;
+                case "questions":
+                    showListOfUnseenQuestions(chatId);
+                    break;
+                case "answer":
+                    User user = userRepository.findById(chatId).get();
+                    user.setStage(Stage.AnsweringQuestion);
+                    userRepository.save(user);
+                    break;
+                case "No":
+                    editMessageAfterChooseInvited(chatId, messageId);
+                    inviteFriend(chatId);
+                    startTalkingAboutProgram(chatId);
+                    break;
+                case "Yes":
+                    User user1 = userRepository.findById(chatId).get();
+                    user1.setStage(Stage.EnterUserNameOfFriend);
+                    userRepository.save(user1);
+                    editMessageAfterChooseInvited(chatId, messageId);
+                    invitedByFriend(chatId);
+                    break;
+                case "Next":
+                    int cur = currentInds.get(chatId);
+                    currentInds.put(chatId, cur + 1);
+                    getTextOfProgramPage(chatId, messageId);
+                    break;
+                case "noThatImage":
+                    User user5 = userRepository.findById(chatId).get();
+                    user5.setStage(Stage.DoingNothing);
+                    userRepository.save(user5);
+                    Review order1 = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                    order1.setStatus(Status.Disapproved);
+                    reviewRepository.save(order1);
+                    sendMessage(order1.getUser().getChatId(), "Заказ отклонен из-за " +
+                            "неправильно присланной фотографии.");
+                    showListOfUnseenReviews(chatId);
+                    break;
+                case "enterManually":
+                    User user6 = userRepository.findById(chatId).get();
+                    user6.setStage(Stage.EnterReasonManuallyToReview);
+                    userRepository.save(user6);
+                    break;
+                case "enterReason":
+                    User user4 = userRepository.findById(chatId).get();
+                    user4.setStage(Stage.DoingNothing);
+                    userRepository.save(user4);
+                    Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                    order.setStatus(Status.Disapproved);
+                    orderRepository.save(order);
+                    sendMessage(order.getUser().getChatId(), "Заказ отклонен из-за " +
+                            "неправильно присланной фотографии.");
+                    showListOfUnseenOrders(chatId);
+                    break;
+                case "enterReasonManually":
+                    User user2 = userRepository.findById(chatId).get();
+                    user2.setStage(Stage.EnterReasonManually);
+                    userRepository.save(user2);
+                    break;
+                default:
+                    sendMessage(chatId, "Извините, команда не распознана.");
+                    break;
+            }
+        }
+    }
+    private void getUpdateFromAdministrator(Update update) {
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            long chatId = update.getMessage().getChatId();
+            String messageText = update.getMessage().getText();
+
+            User user = new User();
+            if (!messageText.equals("/start")) {
+                user = userRepository.findById(chatId).get();
+            }
+            if (messageText.equals(MODERATION)) {
+                moderation(chatId);
+            } else if (messageText.equals(EMPLOYEE)) {
+                employeeManagement(chatId);
+            } else if (messageText.equals(CHANGE)) {
+                ChangeListOfProducts(chatId);
+            } else {
+                switch (messageText) {
+                    case "/start":
+                        registerUser(update.getMessage());
+                        sendMessage(chatId, EmojiParser.parseToUnicode("Привет\uD83D\uDC4B Меня зовут Толик. " +
+                                "Я – бот, и помогаю с участием в проекте «Эксперты Professor SkinGood». " +
+                                "Здесь ты сможешь попробовать \uD83E\uDDF4уходовую косметику «Professor SkinGood», " +
+                                "\uD83D\uDCAC поделиться своим мнением о ней и \uD83C\uDF89 выиграть призы! " +
+                                "За твое мнение мы возместим стоимость покупки и каждый месяц будем разыгрывать " +
+                                "20+ призов среди участников, в том числе сертификат на 10 000 рублей."));
+                        sendRulesAndTermsOfUse(chatId);
+                        break;
+                    case "/rules":
+                        sendRules(chatId);
+                        break;
+                    case "/policy":
+                        sendTermsOfUse(chatId);
+                        break;
+                    case "/info":
+                        sendInfo(chatId);
+                        break;
+                    case "/moderation":
+                        moderation(chatId);
+                        break;
+                    case "/employee":
+                        employeeManagement(chatId);
+                        break;
+                    case "/change":
+                        ChangeListOfProducts(chatId);
+                        break;
+                    default:
+                        if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                            SetUserName(chatId, messageText);
+                            greatings(chatId);
+                            friendInviteYou(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                            SetUserNameOfFriend(chatId, messageText);
+                            send(chatId);
+                            sendFirstPageOfProgram(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.ChangingList) && !messageText.startsWith("/")) {
+                            PrintListOfProducts(chatId, messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterNameOfItemToAdd) && !messageText.startsWith("/")) {
+                            newItem(chatId, messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterShopOfItemToAdd) && !messageText.startsWith("/")) {
+                            setShopToItem(chatId, messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterCountOfItemToAdd) && !messageText.startsWith("/")) {
+                            setCountToItem(chatId, messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            order.setStatus(Status.Disapproved);
+                            orderRepository.save(order);
+                            sendMessage(order.getUser().getChatId(), "Заказ отклонен по причине:\n" + messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Review order = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            order.setStatus(Status.Disapproved);
+                            reviewRepository.save(order);
+                            sendMessage(order.getUser().getChatId(), "Отзыв отклонен по причине:\n" + messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Question unseenQuestion = questionRepository
+                                    .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
+                            unseenQuestion.setStatus(Status.Approved);
+                            User u = unseenQuestion.getUser();
+                            Answer answer = new Answer();
+                            answer.setAnswer(messageText);
+                            answer.setQuestion(unseenQuestion);
+                            answer.setUser(u);
+                            answer.setUs(userRepository.findById(chatId).get());
+                            answerRepository.save(answer);
+                            questionRepository.save(unseenQuestion);
+                            sendMessage(u.getChatId(), "Ответ на ваш вопрос:\n" + messageText);
+                            showListOfUnseenQuestions(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
+                            User user2 = userRepository.findById(chatId).get();
+                            user2.setStage(Stage.DoingNothing);
+                            userRepository.save(user2);
+                            Integer cost = Integer.parseInt(messageText);
+                            var res = reservationToPay.get(user2.getChatId());
+                            var list = productReservationRepository.findByReservation(res);
+                            for (var i:
+                                    list) {
+                                i.setCost(cost);
+                                productReservationRepository.save(i);
+                            }
+                            showListOfUnseenOrders(chatId);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterNewAdminUser) && !messageText.startsWith("/")) {
+                            newAdministrator(chatId, messageText);
+                            break;
+                        } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
+                            newModerator(chatId, messageText);
+                            break;
+                        }
+                        sendMessage(chatId, "Извините, команда не распознана.");
+                        break;
+                }
+            }
+        } else if (update.hasCallbackQuery()) {
+            String callbackData = update.getCallbackQuery().getData();
+            var m = update.getCallbackQuery().getMessage();
+            long messageId = update.getCallbackQuery().getMessage().getMessageId();
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+            if (callbackData.startsWith("product_")) {
+                String number = callbackData.substring(8);
+                long id = Integer.parseInt(number);
+                var product = productRepository.findById(id);
+                Product pr = product.get();
+                var products = productRepository.findAllByTitle(pr.getTitle());
+                var prList = curProdToR.get(chatId);
+                prList.add(products);
+                curProdToR.put(chatId, prList);
+                return;
+            }
+
+            if (callbackData.startsWith("order_")) {
+                String number = callbackData.substring(6);
+                long indOfProductRes = Integer.parseInt(number);
+
+                var ind = 0;
+                for (var i:
+                        currentProdResInOrder.get(chatId)) {
+                    if (i.getId().equals(indOfProductRes)) {
+                        createOrder(chatId, ind);
+                        break;
+                    }
+                    ind++;
+                }
+                return;
+            }
+            if (callbackData.startsWith("review_")) {
+                String number = callbackData.substring(7);
+                long indOfProductRes = Integer.parseInt(number);
+
+                var ind = 0;
+                for (var i:
+                        currentProdResInReview.get(chatId)) {
+                    if (i.getId().equals(indOfProductRes)) {
+                        createReview(chatId, ind);
+                        break;
+                    }
+                    ind++;
+                }
+                return;
+            }
+            if (callbackData.startsWith("addShop_")) {
+                String number = callbackData.substring(8);
+                long indOfProduct = Integer.parseInt(number);
+                Product pr = productRepository.findById(indOfProduct).get();
+                Product p = new Product();
+                p.setTitle(pr.getTitle());
+                p.setNameOfProject(pr.getNameOfProject());
+                curProd.put(chatId, p);
+
+                sendMessage(chatId, "Введите название магазина, в котором продается продукт");
+
+                User u = userRepository.findById(chatId).get();
+                u.setStage(Stage.EnterShopOfItemToAdd);
+                userRepository.save(u);
                 return;
             }
             if (callbackData.startsWith("Approver_")) {
@@ -640,27 +1171,6 @@ public class TelBot extends TelegramLongPollingBot {
                 case "orders":
                     showListOfUnseenOrders(chatId);
                     break;
-                case "AddToOrder":
-                    sendMessage(chatId, "Отправьте ещё изображение по этому заказу");
-                    break;
-                case "FinishOrder":
-                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь, не волнуйся, если это " +
-                            "займет 1-2 дня.\n" +
-                            "\n" +
-                            "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
-                            "написав сюда /help.");
-                    createOrder(chatId, currentIndInList.get(chatId));
-
-                    int inde = currentIndInList.get(chatId);
-                    var li = currentProdResInOrder.get(chatId);
-                    li.remove(inde);
-                    if (inde > li.size() - 1) {
-                        inde = 0;
-                        currentIndInList.put(chatId, inde);
-                    }
-
-                    curImageInOrder.put(chatId, new ArrayList<>());
-                    break;
                 case "reviews":
                     showListOfUnseenReviews(chatId);
                     break;
@@ -691,38 +1201,6 @@ public class TelBot extends TelegramLongPollingBot {
                     int cur = currentInds.get(chatId);
                     currentInds.put(chatId, cur + 1);
                     getTextOfProgramPage(chatId, messageId);
-                    break;
-                case "finishToChooseItems":
-                    List<List<Product>> products = curProdToR.get(chatId);
-                    String text = "Выберите магазин у товара: ";
-                    List<Button> buttons = new ArrayList<>();
-                    int ind = 0;
-                    int i = 1;
-                    for (var product:
-                            products.get(ind)) {
-                        if (i==1) {
-                            text += product.getTitle();
-                            i = 0;
-                        }
-                        Button newButton = new Button(product.getShop(), "shop_" + product.getId() + "_" + ind);
-                        buttons.add(newButton);
-                    }
-
-                    if (products.size() > 1) {
-                        Button newButton = new Button("Пропустить", "skip_" + ind);
-                        buttons.add(newButton);
-                    }
-                    SendMessage message = new SendMessage();
-                    message.setChatId(String.valueOf(chatId));
-                    message.setText(text);
-                    InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
-                    message.setReplyMarkup(markup);
-
-                    try {
-                        execute(message);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
                     break;
                 case "noThatImage":
                     User user5 = userRepository.findById(chatId).get();
@@ -765,59 +1243,11 @@ public class TelBot extends TelegramLongPollingBot {
                 case "addItem":
                     addNewItem(chatId);
                     break;
-                case "sentItAll":
-                    User u = userRepository.findById(chatId).get();
-                    u.setStage(Stage.EnterUserNameOfFriend);
-                    userRepository.save(u);
-                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь. " +
-                            "Не волнуйся, если это займет 1-2 дня. Я вернусь к тебе, как только человек проверит " +
-                            "корректность скрина и учтет всю информацию.");
-                    sendMessage(chatId, "\uD83C\uDF8A Модерация всех твоих отзывов пройдена! \uD83C\uDF8A");
-                    sendTextsAfterModerationReview(chatId);
-                    break;
-                case "newOrder":
-                    sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь, не волнуйся, если это " +
-                            "займет 1-2 дня.\n" +
-                            "\n" +
-                            "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
-                            "написав сюда /help.");
-                    createOrder(chatId, currentIndInList.get(chatId));
-
-                    int index = currentIndInList.get(chatId);
-                    var l = currentProdResInOrder.get(chatId);
-                    l.remove(index);
-                    if (index > l.size() - 1) {
-                        index = 0;
-                        currentIndInList.put(chatId, index);
-                    }
-
-                    curImageInOrder.put(chatId, new ArrayList<>());
-                    String t = "\nОтправьте скрин для товара: " + l.get(index).getProduct().getTitle();
-
-                    index++;
-                    SendMessage mess = new SendMessage();
-                    mess.setChatId(String.valueOf(chatId));
-                    mess.setText(t);
-                    Button yesButton = new Button("Пропустить", "skipOrder_" + index);
-                    List<Button> butts = new ArrayList<>();
-                    butts.add(yesButton);
-                    InlineKeyboardMarkup ma = KeyboardMarkupBuilder.setKeyboard(butts);
-                    mess.setReplyMarkup(ma);
-
-                    try {
-                        execute(mess);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
-                    break;
                 case "WantMore":
                     sendTextAfterMore(chatId);
                     break;
                 case "End":
                     sendTextAfterEnd(chatId);
-                    break;
-                case "AskQuestion":
-                    AskQuestion(chatId);
                     break;
                 case "hireEmployee":
                     onboard(chatId);
@@ -827,9 +1257,6 @@ public class TelBot extends TelegramLongPollingBot {
                     break;
                 case "addAdmin":
                     addNewAdministrator(chatId);
-                    break;
-                case "endToDoReservations":
-                    endToDoReservations(chatId, m);
                     break;
                 default:
                     sendMessage(chatId, "Извините, команда не распознана.");
@@ -1173,40 +1600,44 @@ public class TelBot extends TelegramLongPollingBot {
     private void PrintListOfProducts(long chatId, String nameOfProject) {
         var products1 = productRepository
                 .findAllByNameOfProject(nameOfProject);
-        List<Product> listOfProd = new ArrayList<>();
-        for (var pr:
-                products1) {
-            if (pr.getStat().equals(Stat.Unseen)) {
-                continue;
-            }
-            listOfProd.add(pr);
-        }
-        Set<String> strings = new HashSet<>();
         StringBuilder text = new StringBuilder();
-
-        int ind = 1;
-        for (var i:
-             listOfProd) {
-            if (strings.contains(i.getTitle())) {
-                continue;
-            }
-            for (var j:
-                 listOfProd) {
-                if (i.getTitle().equals(j.getTitle()) && !strings.contains(j.getTitle())) {
-                    text.append(ind).append(" ").append(i.getTitle());
-                    text.append("\n");
-                    text.append("\nТовар размещен в магазинах:\n");
-                    for (var k:
-                            listOfProd) {
-                        if (j.getTitle().equals(k.getTitle())) {
-                            text.append(k.getShop()).append(" ").append(k.getCountAvailable()).append("\n");
-                        }
-                    }
-                    strings.add(i.getTitle());
+        if (products1.size() == 0) {
+            text.append("Для проекта ").append(nameOfProject).append(" пока нет товаров.");
+        } else {
+            List<Product> listOfProd = new ArrayList<>();
+            for (var pr:
+                    products1) {
+                if (pr.getStat().equals(Stat.Unseen)) {
+                    continue;
                 }
+                listOfProd.add(pr);
             }
-            ind++;
-            text.append("\n");
+            Set<String> strings = new HashSet<>();
+
+            int ind = 1;
+            for (var i:
+                    listOfProd) {
+                if (strings.contains(i.getTitle())) {
+                    continue;
+                }
+                for (var j:
+                        listOfProd) {
+                    if (i.getTitle().equals(j.getTitle()) && !strings.contains(j.getTitle())) {
+                        text.append(ind).append(" ").append(i.getTitle());
+                        text.append("\n");
+                        text.append("\nТовар размещен в магазинах:\n");
+                        for (var k:
+                                listOfProd) {
+                            if (j.getTitle().equals(k.getTitle())) {
+                                text.append(k.getShop()).append(" ").append(k.getCountAvailable()).append("\n");
+                            }
+                        }
+                        strings.add(i.getTitle());
+                    }
+                }
+                ind++;
+                text.append("\n");
+            }
         }
         SendMessage message = new SendMessage();
         message.setText(text.toString());
@@ -1788,23 +2219,22 @@ public class TelBot extends TelegramLongPollingBot {
         }
     }
     public void registerUser(Message msg) {
-        if(userRepository.findById(msg.getChatId()).isEmpty()){
-
-            var chatId = msg.getChatId();
+        var chatId = msg.getChatId();
+        if (userRepository.findById(chatId).isEmpty()) {
             var chat = msg.getChat();
-
             User user = new User();
-
             user.setChatId(chatId);
             user.setName(chat.getFirstName());
             user.setUserName(chat.getUserName());
             user.setNumberOfInvitedUsers(0);
             user.setStage(Stage.EnterFirstName);
-            /*if (chatId == 959316826) {
+            if (chatId == 959316826) {
                 user.setRole(Role.Admin);
-            } else {*/
+                usersRole.put(chatId, Role.Admin);
+            } else {
                 user.setRole(Role.Customer);
-            //}
+                usersRole.put(chatId, Role.Customer);
+            }
 
             userRepository.save(user);
             currentInds.put(chatId, 0);
@@ -1812,13 +2242,13 @@ public class TelBot extends TelegramLongPollingBot {
             currentProdResInOrder.put(chatId, new ArrayList<>());
             curProdToR.put(chatId, new ArrayList<>());
             hasInvited.put(chatId, true);
-            /*if (chatId == 959316826) {
-                usersRole.put(chatId, Role.Admin);
-            } else {*/
-                usersRole.put(chatId, Role.Customer);
-            //}
         } else {
-
+            sendMessage(chatId, "Рады видеть вас в нашем новом проекте");
+            currentInds.put(chatId, 0);
+            currentProdResInReview.put(chatId, new ArrayList<>());
+            currentProdResInOrder.put(chatId, new ArrayList<>());
+            curProdToR.put(chatId, new ArrayList<>());
+            hasInvited.put(chatId, true);
         }
     }
     private void sendRulesAndTermsOfUse(long chatId) {
@@ -1843,7 +2273,7 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < 3; i++) {
+        /*for (int i = 0; i < 3; i++) {
             Product prod = new Product();
             prod.setNameOfProject("new");
             if (i == 0) {
@@ -1859,7 +2289,7 @@ public class TelBot extends TelegramLongPollingBot {
             prod.setStat(Stat.Seen);
             prod.setCountAvailable(15);
             productRepository.save(prod);
-        }
+        }*/
     }
     private void editMessageAfterAgreeRulesAndTerms(long chatId, long messageId) {
         EditMessageText confirmText = new EditMessageText();
