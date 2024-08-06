@@ -1704,40 +1704,44 @@ public class TelBot extends TelegramLongPollingBot {
     private void PrintListOfProducts(long chatId, String nameOfProject) {
         var products1 = productRepository
                 .findAllByNameOfProject(nameOfProject);
-        List<Product> listOfProd = new ArrayList<>();
-        for (var pr:
-                products1) {
-            if (pr.getStat().equals(Stat.Unseen)) {
-                continue;
-            }
-            listOfProd.add(pr);
-        }
-        Set<String> strings = new HashSet<>();
         StringBuilder text = new StringBuilder();
-
-        int ind = 1;
-        for (var i:
-             listOfProd) {
-            if (strings.contains(i.getTitle())) {
-                continue;
-            }
-            for (var j:
-                 listOfProd) {
-                if (i.getTitle().equals(j.getTitle()) && !strings.contains(j.getTitle())) {
-                    text.append(ind).append(" ").append(i.getTitle());
-                    text.append("\n");
-                    text.append("\nТовар размещен в магазинах:\n");
-                    for (var k:
-                            listOfProd) {
-                        if (j.getTitle().equals(k.getTitle())) {
-                            text.append(k.getShop()).append(" ").append(k.getCountAvailable()).append("\n");
-                        }
-                    }
-                    strings.add(i.getTitle());
+        if (products1.size() == 0) {
+            text.append("В проекте ").append(nameOfProject).append(" нет товаров");
+        } else {
+            List<Product> listOfProd = new ArrayList<>();
+            for (var pr:
+                    products1) {
+                if (pr.getStat().equals(Stat.Unseen)) {
+                    continue;
                 }
+                listOfProd.add(pr);
             }
-            ind++;
-            text.append("\n");
+            Set<String> strings = new HashSet<>();
+
+            int ind = 1;
+            for (var i:
+                    listOfProd) {
+                if (strings.contains(i.getTitle())) {
+                    continue;
+                }
+                for (var j:
+                        listOfProd) {
+                    if (i.getTitle().equals(j.getTitle()) && !strings.contains(j.getTitle())) {
+                        text.append(ind).append(" ").append(i.getTitle());
+                        text.append("\n");
+                        text.append("\nТовар размещен в магазинах:\n");
+                        for (var k:
+                                listOfProd) {
+                            if (j.getTitle().equals(k.getTitle())) {
+                                text.append(k.getShop()).append(" ").append(k.getCountAvailable()).append("\n");
+                            }
+                        }
+                        strings.add(i.getTitle());
+                    }
+                }
+                ind++;
+                text.append("\n");
+            }
         }
         SendMessage message = new SendMessage();
         message.setText(text.toString());
