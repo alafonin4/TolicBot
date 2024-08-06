@@ -2374,7 +2374,7 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < 3; i++) {
+        /*for (int i = 0; i < 3; i++) {
             Product prod = new Product();
             prod.setNameOfProject("new");
             if (i == 0) {
@@ -2390,7 +2390,7 @@ public class TelBot extends TelegramLongPollingBot {
             prod.setStat(Stat.Seen);
             prod.setCountAvailable(15);
             productRepository.save(prod);
-        }
+        }*/
     }
     private void editMessageAfterAgreeRulesAndTerms(long chatId, long messageId) {
         EditMessageText confirmText = new EditMessageText();
