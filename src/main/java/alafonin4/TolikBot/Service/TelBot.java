@@ -267,6 +267,12 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
+    public String normalizeUsername(String username) {
+        if (username.startsWith("@")) {
+            return username.substring(1);
+        }
+        return username;
+    }
     private void getTextUpdateFromCustomer(Update update) {
         long chatId = update.getMessage().getChatId();
         String messageText = update.getMessage().getText();
@@ -330,11 +336,12 @@ public class TelBot extends TelegramLongPollingBot {
                     break;
                 default:
                     if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
-                        SetUserName(chatId, messageText);
+                        SetUserName(chatId, normalizeUsername(messageText));
                         greatings(chatId);
                         friendInviteYou(chatId);
                         break;
                     } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+
                         SetUserNameOfFriend(chatId, messageText);
                         send(chatId);
                         sendFirstPageOfProgram(chatId);
@@ -1023,10 +1030,10 @@ public class TelBot extends TelegramLongPollingBot {
                         showListOfUnseenOrders(chatId);
                         break;
                     } else if (user.getStage().equals(Stage.EnterNewAdminUser) && !messageText.startsWith("/")) {
-                        newAdministrator(chatId, messageText);
+                        newAdministrator(chatId, normalizeUsername(messageText));
                         break;
                     } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
-                        newModerator(chatId, messageText);
+                        newModerator(chatId, normalizeUsername(messageText));
                         break;
                     }
                     sendMessage(chatId, "Извините, команда не распознана.");
