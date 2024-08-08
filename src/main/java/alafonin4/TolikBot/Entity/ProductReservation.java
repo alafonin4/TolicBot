@@ -26,4 +26,8 @@ public class ProductReservation {
 
     @Column(name = "cost", nullable = true)
     private Integer cost;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "chatId", nullable = true)
+    private User moderator;
 }
