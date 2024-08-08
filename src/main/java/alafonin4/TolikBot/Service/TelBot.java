@@ -40,6 +40,7 @@ import java.util.*;
 public class TelBot extends TelegramLongPollingBot {
     private static final String MODERATION = EmojiParser.parseToUnicode(":page_facing_up:" + "модерация");
     private static final String EMPLOYEE = EmojiParser.parseToUnicode(":page_facing_up:" + "управление сотрудниками");
+    private static final String REPORT = EmojiParser.parseToUnicode(":page_facing_up:" + "отчет по проекту");
     private static final String CHANGE = EmojiParser.parseToUnicode(":page_facing_up:" + "изменение списка товаров");
     private static final String SENDORDERIMAGE = EmojiParser.parseToUnicode(":page_facing_up:" + "отправить скрин заказа");
     private static final String ASKTOLIC = EmojiParser.parseToUnicode(":page_facing_up:" + "Задать вопрос");
@@ -725,6 +726,7 @@ public class TelBot extends TelegramLongPollingBot {
                         for (var i:
                                 list) {
                             i.setCost(cost);
+                            i.setModerator(user2);
                             productReservationRepository.save(i);
                         }
                         showListOfUnseenOrders(chatId);
@@ -1035,6 +1037,7 @@ public class TelBot extends TelegramLongPollingBot {
                         for (var i:
                                 list) {
                             i.setCost(cost);
+                            i.setModerator(user2);
                             productReservationRepository.save(i);
                         }
                         showListOfUnseenOrders(chatId);
@@ -1402,8 +1405,24 @@ public class TelBot extends TelegramLongPollingBot {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // Создание первого листа
-        Sheet sheet1 = workbook.createSheet("Лист 1");
+        Sheet sheet1 = workbook.createSheet("Отчет по продуктам");
         createProductsHeader(sheet1);
+        List<Order> orders = orderRepository.findAllByStatus(Status.Approved);
+        int i = 1;
+        for (var ord:
+                orders) {
+            Row row = sheet1.createRow(i);
+            i++;
+            row.createCell(0).setCellValue(ord.getId());
+            row.createCell(1).setCellValue(ord.getProductReservation().getProduct().getTitle());
+            row.createCell(2).setCellValue(ord.getProductReservation().getProduct().getShop());
+            row.createCell(3).setCellValue(ord.getUser().getChatId());
+            row.createCell(4).setCellValue(ord.getUser().getUserName());
+            row.createCell(5).setCellValue(ord.getProductReservation().getCost());
+            row.createCell(6).setCellValue("чек");
+            row.createCell(7).setCellValue(ord.getProductReservation().getModerator().getChatId());
+            row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getUserName());
+        }
 
         // Создание второго листа
         Sheet sheet2 = workbook.createSheet("Отчет по вопросам");
@@ -1439,35 +1458,6 @@ public class TelBot extends TelegramLongPollingBot {
         }
         return outputStream.toByteArray();
     }
-    /*public byte[] createExcelReport() throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        // Создаем первый лист
-        Sheet sheet1 = workbook.createSheet("Лист 1");
-        Row row1 = sheet1.createRow(0);
-        Cell cell1 = row1.createCell(0);
-        cell1.setCellValue("Данные для листа 1");
-
-        // Создаем второй лист
-        Sheet sheet2 = workbook.createSheet("Лист 2");
-        Row row2 = sheet2.createRow(0);
-        Cell cell2 = row2.createCell(0);
-        cell2.setCellValue("Данные для листа 2");
-
-        // Создаем третий лист
-        Sheet sheet3 = workbook.createSheet("Лист 3");
-        Row row3 = sheet3.createRow(0);
-        Cell cell3 = row3.createCell(0);
-        cell3.setCellValue("Данные для листа 3");
-
-        // Записываем в ByteArrayOutputStream
-        workbook.write(outputStream);
-        workbook.close();
-
-        return outputStream.toByteArray(); // Возвращаем массив байтов
-    }*/
-
     private static void createQuestionHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Id вопроса");
@@ -1480,8 +1470,15 @@ public class TelBot extends TelegramLongPollingBot {
     }
     private static void createProductsHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Имя");
-        headerRow.createCell(1).setCellValue("Возраст");
+        headerRow.createCell(0).setCellValue("Id заказа");
+        headerRow.createCell(1).setCellValue("Наименование товара");
+        headerRow.createCell(2).setCellValue("Магазин");
+        headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
+        headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
+        headerRow.createCell(5).setCellValue("Стоимость из чека");
+        headerRow.createCell(6).setCellValue("чек");
+        headerRow.createCell(7).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(8).setCellValue("UserName модератора в телеграм");
     }
     private void endToDoReservations(long chatId, Message mess) {
         EditMessageText editMessageText = new EditMessageText();
@@ -1565,6 +1562,7 @@ public class TelBot extends TelegramLongPollingBot {
         buttons.add(row1);
         List<Button> row2 = new ArrayList<>();
         row2.add(new Button(EMPLOYEE, ""));
+        row2.add(new Button(REPORT, ""));
         buttons.add(row2);
         sendMessage.setReplyMarkup(KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons));
         try {
@@ -2561,6 +2559,7 @@ public class TelBot extends TelegramLongPollingBot {
             listOfCommands.add(new BotCommand("/moderation", "Модерация"));
             listOfCommands.add(new BotCommand("/change", "Изменение списка товаров"));
             listOfCommands.add(new BotCommand("/employee", "Управление сотрудниками"));
+            listOfCommands.add(new BotCommand("/report", "Отчет по проекту"));
         }
         try {
             this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));
@@ -2621,6 +2620,7 @@ public class TelBot extends TelegramLongPollingBot {
             buttons.add(row1);
             List<Button> row2 = new ArrayList<>();
             row2.add(new Button(EMPLOYEE, ""));
+            row2.add(new Button(REPORT, ""));
             buttons.add(row2);
         }
         sendMessage.setReplyMarkup(KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons));
