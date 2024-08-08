@@ -7,12 +7,17 @@ import alafonin4.TolikBot.KeyboardMarkupBuilder;
 import alafonin4.TolikBot.Repository.*;
 import alafonin4.TolikBot.config.BotConfig;
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -24,6 +29,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -953,6 +960,9 @@ public class TelBot extends TelegramLongPollingBot {
                 case "/employee":
                     employeeManagement(chatId);
                     break;
+                case "/report":
+                    getReport(chatId);
+                    break;
                 case "/change":
                     ChangeListOfProducts(chatId);
                     break;
@@ -1374,6 +1384,104 @@ public class TelBot extends TelegramLongPollingBot {
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
         }
+    }
+    private void getReport(long chatId) {
+        try {
+            byte[] excelData = createExcelReport();
+
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(String.valueOf(chatId));
+            sendDocument.setDocument(new InputFile(new ByteArrayInputStream(excelData), "report.xlsx"));
+            execute(sendDocument);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+    public byte[] createExcelReport() {
+        Workbook workbook = new XSSFWorkbook();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // Создание первого листа
+        Sheet sheet1 = workbook.createSheet("Лист 1");
+        createProductsHeader(sheet1);
+
+        // Создание второго листа
+        Sheet sheet2 = workbook.createSheet("Отчет по вопросам");
+        createQuestionHeader(sheet2);
+        List<Answer> answers = (List<Answer>) answerRepository.findAll();
+
+        int j = 1;
+        for (var ans:
+             answers) {
+            Row row = sheet2.createRow(j);
+            j++;
+            row.createCell(0).setCellValue(ans.getQuestion().getId());
+            row.createCell(1).setCellValue(ans.getUs().getChatId());
+            row.createCell(2).setCellValue(ans.getUs().getUserName());
+            row.createCell(3).setCellValue(ans.getUser().getChatId());
+            row.createCell(4).setCellValue(ans.getUser().getUserName());
+            row.createCell(5).setCellValue(ans.getQuestion().getQue());
+            row.createCell(5).setCellValue(ans.getAnswer());
+        }
+        // Записываем файл
+        try {
+            workbook.write(outputStream);
+            System.out.println("Отчет успешно создан: ");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return outputStream.toByteArray();
+    }
+    /*public byte[] createExcelReport() throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // Создаем первый лист
+        Sheet sheet1 = workbook.createSheet("Лист 1");
+        Row row1 = sheet1.createRow(0);
+        Cell cell1 = row1.createCell(0);
+        cell1.setCellValue("Данные для листа 1");
+
+        // Создаем второй лист
+        Sheet sheet2 = workbook.createSheet("Лист 2");
+        Row row2 = sheet2.createRow(0);
+        Cell cell2 = row2.createCell(0);
+        cell2.setCellValue("Данные для листа 2");
+
+        // Создаем третий лист
+        Sheet sheet3 = workbook.createSheet("Лист 3");
+        Row row3 = sheet3.createRow(0);
+        Cell cell3 = row3.createCell(0);
+        cell3.setCellValue("Данные для листа 3");
+
+        // Записываем в ByteArrayOutputStream
+        workbook.write(outputStream);
+        workbook.close();
+
+        return outputStream.toByteArray(); // Возвращаем массив байтов
+    }*/
+
+    private static void createQuestionHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Id вопроса");
+        headerRow.createCell(1).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(2).setCellValue("UserName модератора в телеграм");
+        headerRow.createCell(3).setCellValue("Id задающего вопрос в телеграм");
+        headerRow.createCell(4).setCellValue("UserName задающего вопрос в телеграм");
+        headerRow.createCell(5).setCellValue("Вопрос от пользователя");
+        headerRow.createCell(5).setCellValue("Ответ модератора");
+    }
+    private static void createProductsHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Имя");
+        headerRow.createCell(1).setCellValue("Возраст");
     }
     private void endToDoReservations(long chatId, Message mess) {
         EditMessageText editMessageText = new EditMessageText();
@@ -2236,7 +2344,8 @@ public class TelBot extends TelegramLongPollingBot {
     private void sendFirstPageOfProgram(long chatId) {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
-        message.setText(program.get(currentInds.get(chatId)));
+        message.setText(program.get(0));
+        currentInds.put(chatId, 0);
         Button yesButton = new Button("Давай", "Next");
         List<Button> buttons = new ArrayList<>();
         buttons.add(yesButton);
