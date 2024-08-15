@@ -1832,6 +1832,15 @@ public class TelBot extends TelegramLongPollingBot {
         row2.add(new Button(EMPLOYEE, ""));
         row2.add(new Button(REPORT, ""));
         buttons.add(row2);
+        List<Button> row4 = new ArrayList<>();
+        row4.add(new Button(PRODUCT, ""));
+        row4.add(new Button(SENDORDERIMAGE, ""));
+        row4.add(new Button(SENDREVIEWIMAGE, ""));
+        buttons.add(row4);
+        List<Button> row3 = new ArrayList<>();
+        row3.add(new Button(PROGRAMM, ""));
+        row3.add(new Button(ASKTOLIC, ""));
+        buttons.add(row3);
         sendMessage.setReplyMarkup(KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons));
         try {
             execute(sendMessage);
@@ -1875,7 +1884,16 @@ public class TelBot extends TelegramLongPollingBot {
         List<List<Button>> buttons = new ArrayList<>();
         List<Button> row1 = new ArrayList<>();
         row1.add(new Button(MODERATION, ""));
+        row1.add(new Button(PRODUCT, ""));
         buttons.add(row1);
+        List<Button> row2 = new ArrayList<>();
+        row2.add(new Button(SENDORDERIMAGE, ""));
+        row2.add(new Button(SENDREVIEWIMAGE, ""));
+        buttons.add(row2);
+        List<Button> row3 = new ArrayList<>();
+        row3.add(new Button(PROGRAMM, ""));
+        row3.add(new Button(ASKTOLIC, ""));
+        buttons.add(row3);
         sendMessage.setReplyMarkup(KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons));
         try {
             execute(sendMessage);
@@ -2891,6 +2909,7 @@ public class TelBot extends TelegramLongPollingBot {
         if (user.getRole().equals(Role.Customer)) {
             List<Button> row1 = new ArrayList<>();
             row1.add(new Button(PRODUCT, ""));
+            row1.add(new Button(PROGRAMM, ""));
             buttons.add(row1);
             List<Button> row2 = new ArrayList<>();
             row2.add(new Button(SENDORDERIMAGE, ""));
@@ -2902,7 +2921,16 @@ public class TelBot extends TelegramLongPollingBot {
         } else if (user.getRole().equals(Role.Moderator)) {
             List<Button> row1 = new ArrayList<>();
             row1.add(new Button(MODERATION, ""));
+            row1.add(new Button(PRODUCT, ""));
             buttons.add(row1);
+            List<Button> row2 = new ArrayList<>();
+            row2.add(new Button(SENDORDERIMAGE, ""));
+            row2.add(new Button(SENDREVIEWIMAGE, ""));
+            buttons.add(row2);
+            List<Button> row3 = new ArrayList<>();
+            row3.add(new Button(PROGRAMM, ""));
+            row3.add(new Button(ASKTOLIC, ""));
+            buttons.add(row3);
         } else if (user.getRole().equals(Role.Admin)) {
             List<Button> row1 = new ArrayList<>();
             row1.add(new Button(MODERATION, ""));
@@ -2912,6 +2940,15 @@ public class TelBot extends TelegramLongPollingBot {
             row2.add(new Button(EMPLOYEE, ""));
             row2.add(new Button(REPORT, ""));
             buttons.add(row2);
+            List<Button> row4 = new ArrayList<>();
+            row4.add(new Button(PRODUCT, ""));
+            row4.add(new Button(SENDORDERIMAGE, ""));
+            row4.add(new Button(SENDREVIEWIMAGE, ""));
+            buttons.add(row4);
+            List<Button> row3 = new ArrayList<>();
+            row3.add(new Button(PROGRAMM, ""));
+            row3.add(new Button(ASKTOLIC, ""));
+            buttons.add(row3);
         }
         sendMessage.setReplyMarkup(KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons));
         try {
