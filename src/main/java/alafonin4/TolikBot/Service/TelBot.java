@@ -1555,6 +1555,9 @@ public class TelBot extends TelegramLongPollingBot {
             case "addAdmin":
                 addNewAdministrator(chatId);
                 break;
+            case "endToDoReservations":
+                endToDoReservations(chatId, m);
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
