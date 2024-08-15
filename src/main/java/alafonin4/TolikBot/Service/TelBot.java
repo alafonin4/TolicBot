@@ -2676,6 +2676,8 @@ public class TelBot extends TelegramLongPollingBot {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
+            sendMessage(chatId, "Чтобы перейти к продуктам нажмите нажмите кнопку \"" + PRODUCT + "\". " +
+                    "Её вы можете найти, если нажмете на иконку клавиатуры в правом нижнем углу экрана.");
         }
     }
     private void saveFileToDatabase(long chatId, byte[] fileData, Long userId, Category category, String url) {
