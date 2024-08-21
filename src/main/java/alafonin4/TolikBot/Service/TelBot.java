@@ -875,6 +875,9 @@ public class TelBot extends TelegramLongPollingBot {
             User u = or.getUser();
 
             var prRes = or.getProductReservation().getReservation();
+            var p = or.getProductReservation();
+            p.setModerator(userRepository.findById(chatId).get());
+            productReservationRepository.save(p);
             var list = new ArrayList<ProductReservation>();
             ProductReservation pr = new ProductReservation();
             Reservation r = new Reservation();
@@ -924,9 +927,13 @@ public class TelBot extends TelegramLongPollingBot {
             String arr = callbackData.substring(12);
             long numberOfRes = Integer.parseInt(arr);
             Order or = orderRepository.findById(numberOfRes).get();
+
             User u = or.getUser();
 
             var prRes = or.getProductReservation().getReservation();
+            var p = or.getProductReservation();
+            p.setModerator(userRepository.findById(chatId).get());
+            productReservationRepository.save(p);
             var list = new ArrayList<ProductReservation>();
             ProductReservation pr = new ProductReservation();
             Reservation r = new Reservation();
