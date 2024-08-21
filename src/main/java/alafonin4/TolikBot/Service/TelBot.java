@@ -1694,15 +1694,41 @@ public class TelBot extends TelegramLongPollingBot {
             row.createCell(2).setCellValue(ord.getProductReservation().getProduct().getShop());
             row.createCell(3).setCellValue(ord.getUser().getChatId());
             row.createCell(4).setCellValue(ord.getUser().getUserName());
-            row.createCell(5).setCellValue(ord.getProductReservation().getCost());
-            StringBuilder urls = new StringBuilder();
-            for (var im :
-                    orderImageRepository.findByOrder(ord)) {
-                urls.append(im.getImage().getUrlToDisk()).append("\n");
+            if (ord.getStatus().equals(Status.Approved)) {
+                row.createCell(5).setCellValue("Принят");
+                row.createCell(6).setCellValue(ord.getProductReservation().getCost());
+                StringBuilder urls = new StringBuilder();
+                for (var im :
+                        orderImageRepository.findByOrder(ord)) {
+                    urls.append(im.getImage().getUrlToDisk()).append("\n");
+                }
+                row.createCell(7).setCellValue(urls.toString());
+                row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
+                row.createCell(9).setCellValue(ord.getProductReservation().getModerator().getUserName());
+            } else if (ord.getStatus().equals(Status.Disapproved)) {
+                row.createCell(5).setCellValue("Отклонен");
+                row.createCell(6).setCellValue("-");
+                StringBuilder urls = new StringBuilder();
+                for (var im :
+                        orderImageRepository.findByOrder(ord)) {
+                    urls.append(im.getImage().getUrlToDisk()).append("\n");
+                }
+                row.createCell(7).setCellValue(urls.toString());
+                row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
+                row.createCell(9).setCellValue(ord.getProductReservation().getModerator().getUserName());
+            } else {
+                row.createCell(5).setCellValue("Не обработан");
+                row.createCell(6).setCellValue("-");
+
+                StringBuilder urls = new StringBuilder();
+                for (var im :
+                        orderImageRepository.findByOrder(ord)) {
+                    urls.append(im.getImage().getUrlToDisk()).append("\n");
+                }
+                row.createCell(7).setCellValue(urls.toString());
+                row.createCell(8).setCellValue("-");
+                row.createCell(9).setCellValue("-");
             }
-            row.createCell(6).setCellValue(urls.toString());
-            row.createCell(7).setCellValue(ord.getProductReservation().getModerator().getChatId());
-            row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getUserName());
         }
 
         Sheet sheet3 = workbook.createSheet("Отчет по отзывам");
@@ -1775,10 +1801,11 @@ public class TelBot extends TelegramLongPollingBot {
         headerRow.createCell(2).setCellValue("Магазин");
         headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
         headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
-        headerRow.createCell(5).setCellValue("Стоимость из чека");
-        headerRow.createCell(6).setCellValue("чек");
-        headerRow.createCell(7).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(8).setCellValue("UserName модератора в телеграм");
+        headerRow.createCell(5).setCellValue("Статус заказа");
+        headerRow.createCell(6).setCellValue("Стоимость из чека");
+        headerRow.createCell(7).setCellValue("чек");
+        headerRow.createCell(8).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(9).setCellValue("UserName модератора в телеграм");
     }
     private static void createReservationHeader(Sheet sheet, Set<String> shops) {
         Row headerRow = sheet.createRow(0);
