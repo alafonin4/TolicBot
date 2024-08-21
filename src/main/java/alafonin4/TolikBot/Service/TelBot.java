@@ -43,6 +43,7 @@ public class TelBot extends TelegramLongPollingBot {
     private static final String REPORT = EmojiParser.parseToUnicode(":page_facing_up:" + "отчет по проекту");
     private static final String PROGRAMM = EmojiParser.parseToUnicode(":page_facing_up:" + "программа");
     private static final String CHANGE = EmojiParser.parseToUnicode(":page_facing_up:" + "изменение списка товаров");
+    private static final String CHANGETEXT = EmojiParser.parseToUnicode(":page_facing_up:" + "изменение текстов бота");
     private static final String SENDORDERIMAGE = EmojiParser.parseToUnicode(":page_facing_up:" + "отправить скрин заказа");
     private static final String ASKTOLIC = EmojiParser.parseToUnicode(":page_facing_up:" + "Задать вопрос");
     private static final String PRODUCT = EmojiParser.parseToUnicode(":page_facing_up:" + "Продукты");
@@ -149,9 +150,8 @@ public class TelBot extends TelegramLongPollingBot {
                         String fileId = largestPhoto.getFileId();
                         try {
                             byte[] fileData = downloadFileAsBytes(fileId);
-                            String url = saveInYandexDisk(fileData, curCat.get(chatId));
                             saveFileToDatabase(chatId, fileData, chatId,
-                                    curCat.get(chatId) == 0 ? Category.Order : Category.Review, url);
+                                    curCat.get(chatId) == 0 ? Category.Order : Category.Review);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -167,7 +167,7 @@ public class TelBot extends TelegramLongPollingBot {
                             text.append("Вы уже отправили изображения заказа на все бронирования.\n");
                         } else {
                             text.append("Выберете товары присутствующие на скрине или " +
-                                    "отправьте ещё одну фотографию:\n");
+                                    "нажмите кнопку \"добавить ещё одну фотографию\":\n");
                             int ind = 1;
                             List<Button> currentRow = new ArrayList<>();
                             for (var pr : currentProdResInOrder.get(chatId)) {
@@ -185,6 +185,11 @@ public class TelBot extends TelegramLongPollingBot {
                             if (!currentRow.isEmpty()) {
                                 buttons.add(new ArrayList<>(currentRow));
                                 currentRow.clear();
+                                Button prButton = new Button("Добавить ещё одну", "addOrderImage");
+                                Button eButton = new Button("Закончить", "FinishOrder");
+                                currentRow.add(prButton);
+                                currentRow.add(eButton);
+                                buttons.add(new ArrayList<>(currentRow));
                             }
                         }
                     }
@@ -276,10 +281,9 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
-    private String saveInYandexDisk(byte[] data, Integer cat) {
+    private String saveInYandexDisk(byte[] data, Integer cat, String filePath) {
         String categoryString = cat == 0 ? "orders" : "reviews";
         String folderPath = "projects/" + nameOfProject + "/" + categoryString;
-        String filePath = "photo_" + categoryString + ".jpg";
         try {
             String uploadedFilePath = YandexDiskUploader.uploadFileToFolder(folderPath, filePath, data);
             String publicUrl = YandexDiskUploader.publishAndGetPublicLink(uploadedFilePath);
@@ -515,7 +519,7 @@ public class TelBot extends TelegramLongPollingBot {
                 setUserCommands(chatId);
                 tryToGetAcquainted(chatId);
                 break;
-            case "AddToOrder":
+            case "addOrderImage":
                 sendMessage(chatId, "Отправьте ещё изображение по этому заказу");
                 break;
             case "FinishOrder":
@@ -524,15 +528,6 @@ public class TelBot extends TelegramLongPollingBot {
                         "\n" +
                         "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
                         "написав сюда /help.");
-                createOrder(chatId, currentIndInList.get(chatId));
-
-                int inde = currentIndInList.get(chatId);
-                var li = currentProdResInOrder.get(chatId);
-                li.remove(inde);
-                if (inde > li.size() - 1) {
-                    inde = 0;
-                    currentIndInList.put(chatId, inde);
-                }
 
                 curImageInOrder.put(chatId, new ArrayList<>());
                 break;
@@ -556,6 +551,9 @@ public class TelBot extends TelegramLongPollingBot {
                 currentInds.put(chatId, cur + 1);
                 getTextOfProgramPage(chatId, messageId);
                 break;
+            case "products":
+                showProductList(chatId);
+                break;
             case "sentItAll":
                 User u = userRepository.findById(chatId).get();
                 u.setStage(Stage.EnterUserNameOfFriend);
@@ -577,6 +575,20 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "endToDoReservations":
                 endToDoReservations(chatId, m);
+                break;
+            case "sendOrder":
+                User us = userRepository.findById(chatId).get();
+                curCat.put(chatId, 0);
+                us.setStage(Stage.EnterImageOrder);
+                userRepository.save(us);
+                sendScreen(chatId);
+                break;
+            case "sendReview":
+                User us1 = userRepository.findById(chatId).get();
+                curCat.put(chatId, 1);
+                us1.setStage(Stage.EnterImageReview);
+                userRepository.save(us1);
+                sendReview(chatId);
                 break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
@@ -994,6 +1006,9 @@ public class TelBot extends TelegramLongPollingBot {
                 currentInds.put(chatId, cur + 1);
                 getTextOfProgramPage(chatId, messageId);
                 break;
+            case "products":
+                showProductList(chatId);
+                break;
             case "noThatImage":
                 User user5 = userRepository.findById(chatId).get();
                 user5.setStage(Stage.DoingNothing);
@@ -1038,6 +1053,20 @@ public class TelBot extends TelegramLongPollingBot {
             case "endToDoReservations":
                 endToDoReservations(chatId, m);
                 break;
+            case "sendOrder":
+                User us = userRepository.findById(chatId).get();
+                curCat.put(chatId, 0);
+                us.setStage(Stage.EnterImageOrder);
+                userRepository.save(us);
+                sendScreen(chatId);
+                break;
+            case "sendReview":
+                User us1 = userRepository.findById(chatId).get();
+                curCat.put(chatId, 1);
+                us1.setStage(Stage.EnterImageReview);
+                userRepository.save(us1);
+                sendReview(chatId);
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
@@ -1075,6 +1104,8 @@ public class TelBot extends TelegramLongPollingBot {
             ChangeListOfProducts(chatId);
         } else if (messageText.equals(REPORT)) {
             getReport(chatId);
+        } else if (messageText.equals(CHANGETEXT)) {
+
         } else {
             switch (messageText) {
                 case "/start":
@@ -1496,6 +1527,9 @@ public class TelBot extends TelegramLongPollingBot {
                 currentInds.put(chatId, cur + 1);
                 getTextOfProgramPage(chatId, messageId);
                 break;
+            case "products":
+                showProductList(chatId);
+                break;
             case "noThatImage":
                 User user5 = userRepository.findById(chatId).get();
                 user5.setStage(Stage.DoingNothing);
@@ -1557,6 +1591,20 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "endToDoReservations":
                 endToDoReservations(chatId, m);
+                break;
+            case "sendOrder":
+                User us = userRepository.findById(chatId).get();
+                curCat.put(chatId, 0);
+                us.setStage(Stage.EnterImageOrder);
+                userRepository.save(us);
+                sendScreen(chatId);
+                break;
+            case "sendReview":
+                User us1 = userRepository.findById(chatId).get();
+                curCat.put(chatId, 1);
+                us1.setStage(Stage.EnterImageReview);
+                userRepository.save(us1);
+                sendReview(chatId);
                 break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
@@ -1688,7 +1736,7 @@ public class TelBot extends TelegramLongPollingBot {
             row.createCell(3).setCellValue(ans.getUser().getChatId());
             row.createCell(4).setCellValue(ans.getUser().getUserName());
             row.createCell(5).setCellValue(ans.getQuestion().getQue());
-            row.createCell(5).setCellValue(ans.getAnswer());
+            row.createCell(6).setCellValue(ans.getAnswer());
         }
         // Записываем файл
         try {
@@ -1761,8 +1809,14 @@ public class TelBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
 
         }
-        sendMessage(chatId, "Чтобы отправить скрин чека, нажмите кнопку \"" + SENDORDERIMAGE + "\". Её вы " +
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText("Чтобы отправить скрин чека, нажмите кнопку \"" + SENDORDERIMAGE + "\". Её вы " +
                 "можете найти, если нажмете на иконку клавиатуры в правом нижнем углу экрана.");
+        Button continueButton = new Button(SENDORDERIMAGE, "sendOrder");
+        List<Button> buttons = new ArrayList<>();
+        buttons.add(continueButton);
+        InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
     }
     private void employeeManagement(long chatId) {
         SendMessage sendMessage = new SendMessage();
@@ -2085,9 +2139,24 @@ public class TelBot extends TelegramLongPollingBot {
         or.setUser(userRepository.findById(chatId).get());
 
         or.setProductReservation(currentProdResInOrder.get(chatId).get(ind));
-        sendMessage(chatId, "Вы отправили чек к товару: " + currentProdResInOrder.get(chatId).get(ind)
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText("Вы отправили чек к товару: " + currentProdResInOrder.get(chatId).get(ind)
+                .getProduct().getTitle()
                 + ", чтобы отправить отзыв к этому товару нажмите кнопку \"" + SENDREVIEWIMAGE + "\" или " +
                 "команду /review");
+
+        Button continueButton = new Button(SENDREVIEWIMAGE, "sendReview");
+        List<Button> buttons = new ArrayList<>();
+        buttons.add(continueButton);
+        InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+        sendMessage.setReplyMarkup(markup);
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+
         var list = currentProdResInOrder.get(chatId);
         int b = ind;
         var li = currentProdResInReview.get(chatId);
@@ -2096,11 +2165,35 @@ public class TelBot extends TelegramLongPollingBot {
         list.remove(b);
         currentProdResInOrder.put(chatId, list);
 
-        orderRepository.save(or);
+        var o = orderRepository.save(or);
+
+        var size = curImageInOrder.get(chatId).size();
+        int i = 1;
+        for (var im:
+                curImageInOrder.get(chatId)) {
+            var file = im.getImg();
+            StringBuilder path = new StringBuilder("order_");
+            path.append(o.getId()).append("_").append(o.getUser().getChatId());
+            if (size > 1) {
+                path.append("_").append(i);
+                i++;
+            }
+            path.append(".jpg");
+            String url = saveInYandexDisk(file,0, path.toString());
+            if (url == null) {
+                im.setUrlToDisk("Не удалось сохранить на диске.");
+            } else {
+                im.setUrlToDisk(url);
+            }
+            imageRepository.save(im);
+        }
+
+
         for (var im:
                 curImageInOrder.get(chatId)) {
             OrderImage orderImage = new OrderImage();
             orderImage.setOrder(or);
+
             orderImage.setImage(im);
             orderImageRepository.save(orderImage);
         }
@@ -2676,11 +2769,23 @@ public class TelBot extends TelegramLongPollingBot {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
-            sendMessage(chatId, "Чтобы перейти к продуктам нажмите нажмите кнопку \"" + PRODUCT + "\". " +
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(String.valueOf(chatId));
+            sendMessage.setText("Чтобы перейти к продуктам нажмите нажмите кнопку \"" + PRODUCT + "\". " +
                     "Её вы можете найти, если нажмете на иконку клавиатуры в правом нижнем углу экрана.");
+            Button continueButton = new Button(PRODUCT, "products");
+            List<Button> buttons = new ArrayList<>();
+            buttons.add(continueButton);
+            InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+            sendMessage.setReplyMarkup(markup);
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
     }
-    private void saveFileToDatabase(long chatId, byte[] fileData, Long userId, Category category, String url) {
+    private void saveFileToDatabase(long chatId, byte[] fileData, Long userId, Category category) {
         User us;
         if(!userRepository.findById(userId).isEmpty()) {
             Optional<User> u = userRepository.findById(userId);
@@ -2691,11 +2796,6 @@ public class TelBot extends TelegramLongPollingBot {
             photo.setUser(us);
             photo.setImg(fileData);
             photo.setTitle(nameOfProject);
-            if (url == null) {
-                photo.setUrlToDisk("Не удалось сохранить на диске.");
-            } else {
-                photo.setUrlToDisk(url);
-            }
             Image saved = imageRepository.save(photo);
             if (category.equals(Category.Order)) {
                 var c = curImageInOrder.get(chatId);
@@ -2767,11 +2867,17 @@ public class TelBot extends TelegramLongPollingBot {
                 sendMessage(959316826L, "Пользователь " + user.getUserName() + " присоединился");
             }
         } else {
+            var chatId = msg.getChatId();
             sendMessage(msg.getChatId(), "Рады видеть вас в нашем новом проекте");
             if (userRepository.findById(959316826L).isPresent()) {
                 sendMessage(959316826L, "Пользователь " +
                         userRepository.findById(msg.getChatId()).get().getUserName() + " вошел в новый проект.");
             }
+            currentInds.put(chatId, 0);
+            currentProdResInReview.put(chatId, new ArrayList<>());
+            currentProdResInOrder.put(chatId, new ArrayList<>());
+            curProdToR.put(chatId, new ArrayList<>());
+            hasInvited.put(chatId, true);
         }
 
     }
