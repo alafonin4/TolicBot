@@ -2627,6 +2627,10 @@ public class TelBot extends TelegramLongPollingBot {
                 currentRow.add(new Button("Я закончил делать бронирования", "endToDoReservations"));
                 buttons.add(new ArrayList<>(currentRow));
                 currentRow.clear();
+            } else  {
+                currentRow.add(new Button("Я закончил делать бронирования", "endToDoReservations"));
+                buttons.add(new ArrayList<>(currentRow));
+                currentRow.clear();
             }
         }
         String text1 = "❗️Количество мест ограничено. Ничего не заказывай, пока не получишь " +
