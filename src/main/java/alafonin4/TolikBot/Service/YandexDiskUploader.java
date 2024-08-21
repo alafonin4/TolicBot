@@ -10,6 +10,7 @@ public class YandexDiskUploader {
 
     public static String uploadFile(String filePath, byte[] fileBytes) throws IOException {
         OkHttpClient client = new OkHttpClient();
+
         HttpUrl url = HttpUrl.parse(DISK_API_BASE_URL + "resources/upload").newBuilder()
                 .addQueryParameter("path", filePath)
                 .addQueryParameter("overwrite", "true")
@@ -35,27 +36,6 @@ public class YandexDiskUploader {
         Response uploadResponse = client.newCall(uploadRequest).execute();
         if (!uploadResponse.isSuccessful()) throw new IOException("Ошибка при загрузке файла: " + uploadResponse);
         return filePath;
-    }
-
-    public static String publishFile(String filePath) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-
-        HttpUrl url = HttpUrl.parse(DISK_API_BASE_URL + "resources/publish").newBuilder()
-                .addQueryParameter("path", filePath)
-                .build();
-
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "OAuth " + OAUTH_TOKEN)
-                .put(RequestBody.create(null, new byte[0]))
-                .build();
-
-        Response response = client.newCall(request).execute();
-        String uploadUrl = String.valueOf(new JSONObject(response.body().string()));
-        System.out.println(uploadUrl);
-        if (!response.isSuccessful()) throw new IOException("Ошибка при публикации файла: " + response);
-
-        return DISK_API_BASE_URL + "resources/download?path=" + filePath;
     }
     public static String publishAndGetPublicLink(String filePath) throws IOException {
         OkHttpClient client = new OkHttpClient();
@@ -122,8 +102,6 @@ public class YandexDiskUploader {
                     .build();
 
             Response checkFolderResponse = client.newCall(checkFolderRequest).execute();
-            var j = new JSONObject(checkFolderResponse.body().string());
-            System.out.println(j.toString());
 
             if (checkFolderResponse.code() == 404) { // Если папка не найдена, создаём её
                 HttpUrl createFolderUrl = HttpUrl.parse(DISK_API_BASE_URL + "resources").newBuilder()
@@ -137,8 +115,6 @@ public class YandexDiskUploader {
                         .build();
 
                 Response createFolderResponse = client.newCall(createFolderRequest).execute();
-                var k = new JSONObject(createFolderResponse.body().string());
-                System.out.println(k.toString());
                 if (!createFolderResponse.isSuccessful()) {
                     throw new IOException("Ошибка при создании папки: " + createFolderResponse);
                 }
