@@ -1756,7 +1756,7 @@ public class TelBot extends TelegramLongPollingBot {
         }
 
         Sheet sheet3 = workbook.createSheet("Отчет по отзывам");
-        List<Review> reviews = reviewRepository.findAllByStatus(Status.Approved);
+        List<Review> reviews = (List<Review>) reviewRepository.findAll();
         createReviewsHeader(sheet3);
         i = 1;
         for (var rev:
@@ -1768,10 +1768,62 @@ public class TelBot extends TelegramLongPollingBot {
             row.createCell(2).setCellValue(rev.getProductReservation().getProduct().getShop());
             row.createCell(3).setCellValue(rev.getUser().getChatId());
             row.createCell(4).setCellValue(rev.getUser().getUserName());
-            var im = reviewImageRepository.findByReview(rev).get(0).getImage();
-            row.createCell(6).setCellValue(im.getUrlToDisk());
-            row.createCell(7).setCellValue(rev.getProductReservation().getModerator().getChatId());
-            row.createCell(8).setCellValue(rev.getProductReservation().getModerator().getUserName());
+            if (rev.getStatus().equals(Status.Approved)) {
+                row.createCell(5).setCellValue("Принят");
+                StringBuilder urls = new StringBuilder();
+                int k = 0;
+                for (var reviewImage :
+                        reviewImageRepository.findByReview(rev)) {
+                    if (k == reviewImageRepository.findByReview(rev).size() - 1) {
+                        urls.append(reviewImage.getImage().getUrlToDisk());
+                    } else {
+                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                    }
+                }
+                row.createCell(6).setCellValue(urls.toString());
+                if (rev.getProductReservation().getModerator() == null) {
+                    row.createCell(8).setCellValue("-");
+                    row.createCell(9).setCellValue("-");
+                } else {
+                    row.createCell(8).setCellValue(rev.getProductReservation().getModerator().getChatId());
+                    row.createCell(9).setCellValue(rev.getProductReservation().getModerator().getUserName());
+                }
+            } else if (rev.getStatus().equals(Status.Disapproved)) {
+                row.createCell(5).setCellValue("Отклонен");
+                StringBuilder urls = new StringBuilder();
+                int k = 0;
+                for (var reviewImage :
+                        reviewImageRepository.findByReview(rev)) {
+                    if (k == reviewImageRepository.findByReview(rev).size() - 1) {
+                        urls.append(reviewImage.getImage().getUrlToDisk());
+                    } else {
+                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                    }
+                }
+                row.createCell(6).setCellValue(urls.toString());
+                if (rev.getProductReservation().getModerator() == null) {
+                    row.createCell(7).setCellValue("-");
+                    row.createCell(8).setCellValue("-");
+                } else {
+                    row.createCell(7).setCellValue(rev.getProductReservation().getModerator().getChatId());
+                    row.createCell(8).setCellValue(rev.getProductReservation().getModerator().getUserName());
+                }
+            } else {
+                row.createCell(5).setCellValue("Не обработан");
+                StringBuilder urls = new StringBuilder();
+                int k = 0;
+                for (var reviewImage :
+                        reviewImageRepository.findByReview(rev)) {
+                    if (k == reviewImageRepository.findByReview(rev).size() - 1) {
+                        urls.append(reviewImage.getImage().getUrlToDisk());
+                    } else {
+                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                    }
+                }
+                row.createCell(6).setCellValue(urls.toString());
+                row.createCell(7).setCellValue("-");
+                row.createCell(8).setCellValue("-");
+            }
         }
 
         // Создание второго листа
@@ -1849,9 +1901,10 @@ public class TelBot extends TelegramLongPollingBot {
         headerRow.createCell(2).setCellValue("Магазин");
         headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
         headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
-        headerRow.createCell(5).setCellValue("Отзыв");
-        headerRow.createCell(6).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(7).setCellValue("UserName модератора в телеграм");
+        headerRow.createCell(5).setCellValue("Статус отзыва");
+        headerRow.createCell(6).setCellValue("Отзыв");
+        headerRow.createCell(7).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(8).setCellValue("UserName модератора в телеграм");
     }
     private void endToDoReservations(long chatId, Message mess) {
         EditMessageText editMessageText = new EditMessageText();
