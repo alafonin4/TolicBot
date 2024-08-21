@@ -1723,8 +1723,13 @@ public class TelBot extends TelegramLongPollingBot {
                     }
                 }
                 row.createCell(7).setCellValue(urls.toString());
-                row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
-                row.createCell(9).setCellValue(ord.getProductReservation().getModerator().getUserName());
+                if (ord.getProductReservation().getModerator().equals(null)) {
+                    row.createCell(8).setCellValue("-");
+                    row.createCell(9).setCellValue("-");
+                } else {
+                    row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
+                    row.createCell(9).setCellValue(ord.getProductReservation().getModerator().getUserName());
+                }
             } else {
                 row.createCell(5).setCellValue("Не обработан");
                 row.createCell(6).setCellValue("-");
