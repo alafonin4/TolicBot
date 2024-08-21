@@ -1385,6 +1385,9 @@ public class TelBot extends TelegramLongPollingBot {
             User u = or.getUser();
 
             var prRes = or.getProductReservation().getReservation();
+            var p = or.getProductReservation();
+            p.setModerator(userRepository.findById(chatId).get());
+            productReservationRepository.save(p);
             var list = new ArrayList<ProductReservation>();
             ProductReservation pr = new ProductReservation();
             Reservation r = new Reservation();
@@ -1826,24 +1829,32 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
 
-        // Создание второго листа
         Sheet sheet4 = workbook.createSheet("Отчет по вопросам");
         createQuestionHeader(sheet4);
-        List<Answer> answers = (List<Answer>) answerRepository.findAll();
-
+        List<Question> questions = (List<Question>) questionRepository.findAll();
         int j = 1;
-        for (var ans:
-             answers) {
+        for (var q:
+             questions) {
             Row row = sheet4.createRow(j);
             j++;
-            row.createCell(0).setCellValue(ans.getQuestion().getId());
-            row.createCell(1).setCellValue(ans.getUs().getChatId());
-            row.createCell(2).setCellValue(ans.getUs().getUserName());
-            row.createCell(3).setCellValue(ans.getUser().getChatId());
-            row.createCell(4).setCellValue(ans.getUser().getUserName());
-            row.createCell(5).setCellValue(ans.getQuestion().getQue());
-            row.createCell(6).setCellValue(ans.getAnswer());
+            row.createCell(0).setCellValue(q.getId());
+            Answer ans = answerRepository.findAllByQuestion(q);
+            row.createCell(4).setCellValue(q.getUser().getChatId());
+            row.createCell(5).setCellValue(q.getUser().getUserName());
+            row.createCell(6).setCellValue(q.getQue());
+            if (ans != null) {
+                row.createCell(1).setCellValue("Отвечен");
+                row.createCell(2).setCellValue(ans.getUs().getChatId());
+                row.createCell(3).setCellValue(ans.getUs().getUserName());
+                row.createCell(7).setCellValue(ans.getAnswer());
+            } else {
+                row.createCell(1).setCellValue("Не отвечен");
+                row.createCell(2).setCellValue("-");
+                row.createCell(3).setCellValue("-");
+                row.createCell(7).setCellValue("-");
+            }
         }
+
         // Записываем файл
         try {
             workbook.write(outputStream);
@@ -1863,12 +1874,13 @@ public class TelBot extends TelegramLongPollingBot {
     private static void createQuestionHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Id вопроса");
-        headerRow.createCell(1).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(2).setCellValue("UserName модератора в телеграм");
-        headerRow.createCell(3).setCellValue("Id задающего вопрос в телеграм");
-        headerRow.createCell(4).setCellValue("UserName задающего вопрос в телеграм");
-        headerRow.createCell(5).setCellValue("Вопрос от пользователя");
-        headerRow.createCell(5).setCellValue("Ответ модератора");
+        headerRow.createCell(1).setCellValue("Статус вопроса");
+        headerRow.createCell(2).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(3).setCellValue("UserName модератора в телеграм");
+        headerRow.createCell(4).setCellValue("Id задающего вопрос в телеграм");
+        headerRow.createCell(5).setCellValue("UserName задающего вопрос в телеграм");
+        headerRow.createCell(6).setCellValue("Вопрос от пользователя");
+        headerRow.createCell(7).setCellValue("Ответ модератора");
     }
     private static void createProductsHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
