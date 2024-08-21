@@ -1817,6 +1817,12 @@ public class TelBot extends TelegramLongPollingBot {
         List<Button> buttons = new ArrayList<>();
         buttons.add(continueButton);
         InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+        sendMessage.setReplyMarkup(markup);
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
     private void employeeManagement(long chatId) {
         SendMessage sendMessage = new SendMessage();
