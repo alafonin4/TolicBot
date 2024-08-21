@@ -1683,7 +1683,7 @@ public class TelBot extends TelegramLongPollingBot {
         
         Sheet sheet2 = workbook.createSheet("Отчет по заказам");
         createProductsHeader(sheet2);
-        List<Order> orders = orderRepository.findAllByStatus(Status.Approved);
+        List<Order> orders = (List<Order>) orderRepository.findAll();
         i = 1;
         for (var ord:
                 orders) {
@@ -1695,8 +1695,12 @@ public class TelBot extends TelegramLongPollingBot {
             row.createCell(3).setCellValue(ord.getUser().getChatId());
             row.createCell(4).setCellValue(ord.getUser().getUserName());
             row.createCell(5).setCellValue(ord.getProductReservation().getCost());
-            var im = orderImageRepository.findByOrder(ord).get(0).getImage().getUrlToDisk();
-            row.createCell(6).setCellValue(im);
+            StringBuilder urls = new StringBuilder();
+            for (var im :
+                    orderImageRepository.findByOrder(ord)) {
+                urls.append(im.getImage().getUrlToDisk()).append("\n");
+            }
+            row.createCell(6).setCellValue(urls.toString());
             row.createCell(7).setCellValue(ord.getProductReservation().getModerator().getChatId());
             row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getUserName());
         }
