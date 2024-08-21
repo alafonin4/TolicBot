@@ -1723,7 +1723,7 @@ public class TelBot extends TelegramLongPollingBot {
                     }
                 }
                 row.createCell(7).setCellValue(urls.toString());
-                if (ord.getProductReservation().getModerator().equals(null)) {
+                if (ord.getProductReservation().getModerator() == null) {
                     row.createCell(8).setCellValue("-");
                     row.createCell(9).setCellValue("-");
                 } else {
