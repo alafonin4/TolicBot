@@ -1709,9 +1709,14 @@ public class TelBot extends TelegramLongPollingBot {
                 row.createCell(5).setCellValue("Отклонен");
                 row.createCell(6).setCellValue("-");
                 StringBuilder urls = new StringBuilder();
+                int k = 0;
                 for (var im :
                         orderImageRepository.findByOrder(ord)) {
-                    urls.append(im.getImage().getUrlToDisk()).append("\n");
+                    if (k == orderImageRepository.findByOrder(ord).size() - 1) {
+                        urls.append(im.getImage().getUrlToDisk());
+                    } else {
+                        urls.append(im.getImage().getUrlToDisk()).append("\n");
+                    }
                 }
                 row.createCell(7).setCellValue(urls.toString());
                 row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
