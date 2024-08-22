@@ -1690,6 +1690,7 @@ public class TelBot extends TelegramLongPollingBot {
                                 } else {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue("-");
+                                    indShop++;
                                 }
                             }
                         }
