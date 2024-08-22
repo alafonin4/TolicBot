@@ -7,6 +7,7 @@ import alafonin4.TolikBot.KeyboardMarkupBuilder;
 import alafonin4.TolikBot.Repository.*;
 import alafonin4.TolikBot.config.BotConfig;
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -1688,7 +1689,7 @@ public class TelBot extends TelegramLongPollingBot {
                                     break;
                                 } else {
                                     System.out.println(indShop);
-                                    if (!row.getCell(indShop).getStringCellValue().equals("-")) {
+                                    if (row.getCell(indShop).getCellType().equals(CellType.NUMERIC)) {
                                         indShop++;
                                         continue;
                                     }
