@@ -1686,6 +1686,7 @@ public class TelBot extends TelegramLongPollingBot {
                                 if (k.getShop().equals(shop)) {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue(k.getCountAvailable());
+                                    indShop++;
                                 } else {
                                     System.out.println(indShop);
                                     if (row.getCell(indShop) == null) {
