@@ -1673,9 +1673,9 @@ public class TelBot extends TelegramLongPollingBot {
                     numberOfRow++;
                     row.createCell(0).setCellValue(j.getId());
                     row.createCell(1).setCellValue(j.getTitle());
+                    int indShop = 2;
                     for (var k:
                             listOfProd) {
-                        int indShop = 2;
                         if (j.getTitle().equals(k.getTitle())) {
                             for (var shop:
                                  shops) {
@@ -1685,12 +1685,12 @@ public class TelBot extends TelegramLongPollingBot {
                                 if (k.getShop().equals(shop)) {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue(k.getCountAvailable());
+                                    indShop++;
                                     break;
                                 } else {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue("-");
                                 }
-                                indShop++;
                             }
                         }
                     }
