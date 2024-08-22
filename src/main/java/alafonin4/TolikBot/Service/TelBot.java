@@ -1694,10 +1694,7 @@ public class TelBot extends TelegramLongPollingBot {
                                         indShop++;
                                         continue;
                                     }
-                                    if (row.getCell(indShop).getCellType().equals(CellType.NUMERIC)) {
-                                        indShop++;
-                                        continue;
-                                    }
+                                    ind++;
                                 }
                             }
                         }
