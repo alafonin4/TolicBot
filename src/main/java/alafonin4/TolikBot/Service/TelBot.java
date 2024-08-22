@@ -1689,7 +1689,7 @@ public class TelBot extends TelegramLongPollingBot {
                                     break;
                                 } else {
                                     System.out.println(indShop);
-                                    if (row.getCell(indShop).getCellType() == null) {
+                                    if (row.getCell(indShop) == null) {
                                         row.createCell(indShop).setCellValue("-");
                                         indShop++;
                                         continue;
