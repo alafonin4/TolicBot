@@ -1679,6 +1679,7 @@ public class TelBot extends TelegramLongPollingBot {
                         if (j.getTitle().equals(k.getTitle())) {
                             for (var shop:
                                  shops) {
+                                System.out.println(k.getTitle());
                                 System.out.println(shop);
                                 System.out.println(k.getShop());
                                 if (k.getShop().equals(shop)) {
