@@ -959,7 +959,7 @@ public class TelBot extends TelegramLongPollingBot {
                 setUserCommands(chatId);
                 tryToGetAcquainted(chatId);
                 break;
-            case "AddToOrder":
+            case "addOrderImage":
                 sendMessage(chatId, "Отправьте ещё изображение по этому заказу");
                 break;
             case "FinishOrder":
@@ -968,15 +968,6 @@ public class TelBot extends TelegramLongPollingBot {
                         "\n" +
                         "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
                         "написав сюда /help.");
-                createOrder(chatId, currentIndInList.get(chatId));
-
-                int inde = currentIndInList.get(chatId);
-                var li = currentProdResInOrder.get(chatId);
-                li.remove(inde);
-                if (inde > li.size() - 1) {
-                    inde = 0;
-                    currentIndInList.put(chatId, inde);
-                }
 
                 curImageInOrder.put(chatId, new ArrayList<>());
                 break;
@@ -1621,6 +1612,18 @@ public class TelBot extends TelegramLongPollingBot {
                 userRepository.save(us1);
                 sendReview(chatId);
                 break;
+            case "addOrderImage":
+                sendMessage(chatId, "Отправьте ещё изображение по этому заказу");
+                break;
+            case "FinishOrder":
+                sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь, не волнуйся, если это " +
+                        "займет 1-2 дня.\n" +
+                        "\n" +
+                        "\uD83D\uDD14 В любой момент меня можно вызвать и задать вопрос через меню или " +
+                        "написав сюда /help.");
+
+                curImageInOrder.put(chatId, new ArrayList<>());
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
@@ -1680,15 +1683,11 @@ public class TelBot extends TelegramLongPollingBot {
                             int indShop = 2;
                             for (var shop:
                                  shops) {
-                                System.out.println(k.getTitle());
-                                System.out.println(shop);
-                                System.out.println(k.getShop());
                                 if (k.getShop().equals(shop)) {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue(k.getCountAvailable());
                                     indShop++;
                                 } else {
-                                    System.out.println(indShop);
                                     if (row.getCell(indShop) == null) {
                                         row.createCell(indShop).setCellValue("-");
                                         indShop++;
