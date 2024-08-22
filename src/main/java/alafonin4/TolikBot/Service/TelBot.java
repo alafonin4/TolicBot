@@ -1689,12 +1689,15 @@ public class TelBot extends TelegramLongPollingBot {
                                     break;
                                 } else {
                                     System.out.println(indShop);
+                                    if (row.getCell(indShop).getCellType() == null) {
+                                        row.createCell(indShop).setCellValue("-");
+                                        indShop++;
+                                        continue;
+                                    }
                                     if (row.getCell(indShop).getCellType().equals(CellType.NUMERIC)) {
                                         indShop++;
                                         continue;
                                     }
-                                    row.createCell(indShop).setCellValue("-");
-                                    indShop++;
                                 }
                             }
                         }
@@ -1705,7 +1708,7 @@ public class TelBot extends TelegramLongPollingBot {
             ind++;
         }
         int i = 1;
-        
+
         Sheet sheet2 = workbook.createSheet("Отчет по заказам");
         createProductsHeader(sheet2);
         List<Order> orders = (List<Order>) orderRepository.findAll();
