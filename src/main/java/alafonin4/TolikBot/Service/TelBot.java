@@ -1823,7 +1823,7 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == orderImageRepository.findByOrder(ord).size() - 1) {
                         urls.append(im.getImage().getUrlToDisk());
                     } else {
-                        urls.append(im.getImage().getUrlToDisk()).append(" ");
+                        urls.append(im.getImage().getUrlToDisk());
                     }
                 }
                 String u = urls.toString();
@@ -1883,7 +1883,7 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == reviewImageRepository.findByReview(rev).size() - 1) {
                         urls.append(reviewImage.getImage().getUrlToDisk());
                     } else {
-                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                        urls.append(reviewImage.getImage().getUrlToDisk());
                     }
                 }
                 row.createCell(6).setCellValue(urls.toString());
@@ -1903,7 +1903,7 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == reviewImageRepository.findByReview(rev).size() - 1) {
                         urls.append(reviewImage.getImage().getUrlToDisk());
                     } else {
-                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                        urls.append(reviewImage.getImage().getUrlToDisk());
                     }
                 }
                 row.createCell(6).setCellValue(urls.toString());
@@ -1923,7 +1923,7 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == reviewImageRepository.findByReview(rev).size() - 1) {
                         urls.append(reviewImage.getImage().getUrlToDisk());
                     } else {
-                        urls.append(reviewImage.getImage().getUrlToDisk()).append("\n");
+                        urls.append(reviewImage.getImage().getUrlToDisk());
                     }
                 }
                 row.createCell(6).setCellValue(urls.toString());
