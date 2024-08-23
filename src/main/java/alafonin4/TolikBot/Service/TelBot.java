@@ -1645,11 +1645,79 @@ public class TelBot extends TelegramLongPollingBot {
         Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
+        createSummaryReservationList(workbook);
+        createOrdersList(workbook);
+        createReviewList(workbook);
+        createQuestionsList(workbook);
+
+        try {
+            workbook.write(outputStream);
+            System.out.println("Отчет успешно создан: ");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return outputStream.toByteArray();
+    }
+    private void createQuestionHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Id вопроса");
+        headerRow.createCell(1).setCellValue("Статус вопроса");
+        headerRow.createCell(2).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(3).setCellValue("UserName модератора в телеграм");
+        headerRow.createCell(4).setCellValue("Id задающего вопрос в телеграм");
+        headerRow.createCell(5).setCellValue("UserName задающего вопрос в телеграм");
+        headerRow.createCell(6).setCellValue("Вопрос от пользователя");
+        headerRow.createCell(7).setCellValue("Ответ модератора");
+    }
+    private void createProductsHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Id заказа");
+        headerRow.createCell(1).setCellValue("Наименование товара");
+        headerRow.createCell(2).setCellValue("Магазин");
+        headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
+        headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
+        headerRow.createCell(5).setCellValue("Статус заказа");
+        headerRow.createCell(6).setCellValue("Стоимость из чека");
+        headerRow.createCell(7).setCellValue("чек");
+        headerRow.createCell(8).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(9).setCellValue("UserName модератора в телеграм");
+    }
+    private void createReservationHeader(Sheet sheet, Set<String> shops) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Id продукта");
+        headerRow.createCell(1).setCellValue("Наименование товара");
+        var i = 2;
+        for (var shop:
+             shops) {
+            headerRow.createCell(i).setCellValue(shop);
+            i++;
+        }
+    }
+    private void createReviewsHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Id отзыва");
+        headerRow.createCell(1).setCellValue("Наименование товара");
+        headerRow.createCell(2).setCellValue("Магазин");
+        headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
+        headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
+        headerRow.createCell(5).setCellValue("Статус отзыва");
+        headerRow.createCell(6).setCellValue("Отзыв");
+        headerRow.createCell(7).setCellValue("Id модератора в телеграм");
+        headerRow.createCell(8).setCellValue("UserName модератора в телеграм");
+    }
+    private void createSummaryReservationList(Workbook workbook) {
         Sheet sheet1 = workbook.createSheet("Отчет по бронированиям");
         var products1 = productRepository.findAllByNameOfProject(nameOfProject);
         Set<String> shops = new HashSet<>();
         for (var pr:
-             products1) {
+                products1) {
             shops.add(pr.getShop());
         }
         createReservationHeader(sheet1, shops);
@@ -1682,7 +1750,7 @@ public class TelBot extends TelegramLongPollingBot {
                         if (j.getTitle().equals(k.getTitle())) {
                             int indShop = 2;
                             for (var shop:
-                                 shops) {
+                                    shops) {
                                 if (k.getShop().equals(shop)) {
                                     System.out.println(indShop);
                                     row.createCell(indShop).setCellValue(k.getCountAvailable());
@@ -1710,12 +1778,15 @@ public class TelBot extends TelegramLongPollingBot {
             }
             ind++;
         }
-        int i = 1;
+    }
+    private void createSummaryOrderList(Workbook workbook) {
 
+    }
+    private void createOrdersList(Workbook workbook) {
         Sheet sheet2 = workbook.createSheet("Отчет по заказам");
         createProductsHeader(sheet2);
         List<Order> orders = (List<Order>) orderRepository.findAll();
-        i = 1;
+        int i = 1;
         for (var ord:
                 orders) {
             Row row = sheet2.createRow(i);
@@ -1733,12 +1804,13 @@ public class TelBot extends TelegramLongPollingBot {
                 for (var im :
                         orderImageRepository.findByOrder(ord)) {
                     if (k != orderImageRepository.findByOrder(ord).size() - 1) {
-                        urls.append(im.getImage().getUrlToDisk()).append("\n");
+                        urls.append(im.getImage().getUrlToDisk());
                     } else {
                         urls.append(im.getImage().getUrlToDisk());
                     }
                 }
-                row.createCell(7).setCellValue(urls.toString());
+                String u = urls.toString();
+                row.createCell(7).setCellValue(u);
                 row.createCell(8).setCellValue(ord.getProductReservation().getModerator().getChatId());
                 row.createCell(9).setCellValue(ord.getProductReservation().getModerator().getUserName());
             } else if (ord.getStatus().equals(Status.Disapproved)) {
@@ -1751,10 +1823,11 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == orderImageRepository.findByOrder(ord).size() - 1) {
                         urls.append(im.getImage().getUrlToDisk());
                     } else {
-                        urls.append(im.getImage().getUrlToDisk()).append("\n");
+                        urls.append(im.getImage().getUrlToDisk());
                     }
                 }
-                row.createCell(7).setCellValue(urls.toString());
+                String u = urls.toString();
+                row.createCell(7).setCellValue(u);
                 if (ord.getProductReservation().getModerator() == null) {
                     row.createCell(8).setCellValue("-");
                     row.createCell(9).setCellValue("-");
@@ -1773,19 +1846,25 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == orderImageRepository.findByOrder(ord).size() - 1) {
                         urls.append(im.getImage().getUrlToDisk());
                     } else {
-                        urls.append(im.getImage().getUrlToDisk()).append("\n");
+                        urls.append(im.getImage().getUrlToDisk());
                     }
                 }
-                row.createCell(7).setCellValue(urls.toString());
+
+                String u = urls.toString();
+                row.createCell(7).setCellValue(u);
                 row.createCell(8).setCellValue("-");
                 row.createCell(9).setCellValue("-");
             }
         }
+    }
+    private void createSummaryReviewList(Workbook workbook) {
 
+    }
+    private void createReviewList(Workbook workbook) {
         Sheet sheet3 = workbook.createSheet("Отчет по отзывам");
         List<Review> reviews = (List<Review>) reviewRepository.findAll();
         createReviewsHeader(sheet3);
-        i = 1;
+        int i = 1;
         for (var rev:
                 reviews) {
             Row row = sheet3.createRow(i);
@@ -1852,13 +1931,17 @@ public class TelBot extends TelegramLongPollingBot {
                 row.createCell(8).setCellValue("-");
             }
         }
+    }
+    private void createSummaryQuestionList(Workbook workbook) {
 
+    }
+    private void createQuestionsList(Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Отчет по вопросам");
         createQuestionHeader(sheet4);
         List<Question> questions = (List<Question>) questionRepository.findAll();
         int j = 1;
         for (var q:
-             questions) {
+                questions) {
             Row row = sheet4.createRow(j);
             j++;
             row.createCell(0).setCellValue(q.getId());
@@ -1878,69 +1961,6 @@ public class TelBot extends TelegramLongPollingBot {
                 row.createCell(7).setCellValue("-");
             }
         }
-
-        // Записываем файл
-        try {
-            workbook.write(outputStream);
-            System.out.println("Отчет успешно создан: ");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return outputStream.toByteArray();
-    }
-    private static void createQuestionHeader(Sheet sheet) {
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Id вопроса");
-        headerRow.createCell(1).setCellValue("Статус вопроса");
-        headerRow.createCell(2).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(3).setCellValue("UserName модератора в телеграм");
-        headerRow.createCell(4).setCellValue("Id задающего вопрос в телеграм");
-        headerRow.createCell(5).setCellValue("UserName задающего вопрос в телеграм");
-        headerRow.createCell(6).setCellValue("Вопрос от пользователя");
-        headerRow.createCell(7).setCellValue("Ответ модератора");
-    }
-    private static void createProductsHeader(Sheet sheet) {
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Id заказа");
-        headerRow.createCell(1).setCellValue("Наименование товара");
-        headerRow.createCell(2).setCellValue("Магазин");
-        headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
-        headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
-        headerRow.createCell(5).setCellValue("Статус заказа");
-        headerRow.createCell(6).setCellValue("Стоимость из чека");
-        headerRow.createCell(7).setCellValue("чек");
-        headerRow.createCell(8).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(9).setCellValue("UserName модератора в телеграм");
-    }
-    private static void createReservationHeader(Sheet sheet, Set<String> shops) {
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Id продукта");
-        headerRow.createCell(1).setCellValue("Наименование товара");
-        var i = 2;
-        for (var shop:
-             shops) {
-            headerRow.createCell(i).setCellValue(shop);
-            i++;
-        }
-    }
-    private static void createReviewsHeader(Sheet sheet) {
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Id отзыва");
-        headerRow.createCell(1).setCellValue("Наименование товара");
-        headerRow.createCell(2).setCellValue("Магазин");
-        headerRow.createCell(3).setCellValue("Id пользователя в телеграм");
-        headerRow.createCell(4).setCellValue("UserName пользователя в телеграм");
-        headerRow.createCell(5).setCellValue("Статус отзыва");
-        headerRow.createCell(6).setCellValue("Отзыв");
-        headerRow.createCell(7).setCellValue("Id модератора в телеграм");
-        headerRow.createCell(8).setCellValue("UserName модератора в телеграм");
     }
     private void endToDoReservations(long chatId, Message mess) {
         EditMessageText editMessageText = new EditMessageText();
