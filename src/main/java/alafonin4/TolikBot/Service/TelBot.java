@@ -282,9 +282,9 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
-    private String saveInYandexDisk(byte[] data, Integer cat, String filePath) {
+    private String saveInYandexDisk(byte[] data, Integer cat, String filePath, Product product) {
         String categoryString = cat == 0 ? "orders" : "reviews";
-        String folderPath = "projects/" + nameOfProject + "/" + categoryString;
+        String folderPath = "projects/" + nameOfProject + "/" + categoryString + "/" + product.getTitle();
         try {
             String uploadedFilePath = YandexDiskUploader.uploadFileToFolder(folderPath, filePath, data);
             String publicUrl = YandexDiskUploader.publishAndGetPublicLink(uploadedFilePath);
@@ -2311,8 +2311,7 @@ public class TelBot extends TelegramLongPollingBot {
         or.setProductReservation(currentProdResInOrder.get(chatId).get(ind));
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
-        sendMessage.setText("Вы отправили чек к товару: " + currentProdResInOrder.get(chatId).get(ind)
-                .getProduct().getTitle()
+        sendMessage.setText("Вы отправили чек к товару: " + currentProdResInOrder.get(chatId).get(ind).getProduct().getTitle()
                 + ", чтобы отправить отзыв к этому товару нажмите кнопку \"" + SENDREVIEWIMAGE + "\" или " +
                 "команду /review");
 
@@ -2349,7 +2348,7 @@ public class TelBot extends TelegramLongPollingBot {
                 i++;
             }
             path.append(".jpg");
-            String url = saveInYandexDisk(file,0, path.toString());
+            String url = saveInYandexDisk(file,0, path.toString(), o.getProductReservation().getProduct());
             if (url == null) {
                 im.setUrlToDisk("Не удалось сохранить на диске.");
             } else {
@@ -2532,7 +2531,7 @@ public class TelBot extends TelegramLongPollingBot {
         User u = order.getUser();
         ProductReservation pr = order.getProductReservation();
 
-        String text = pr.getProduct().getTitle();
+        String text = "От: "+ u.getUserName() + "\n" + pr.getProduct().getTitle();
         List<Button> buttons = new ArrayList<>();
         Button aptButton = new Button("Одобрить", "Approved_" + pr.getReservation().getId() + " " + order.getId());
         buttons.add(aptButton);
@@ -2626,7 +2625,7 @@ public class TelBot extends TelegramLongPollingBot {
         User u = order.getUser();
         ProductReservation pr = order.getProductReservation();
 
-        String text = pr.getProduct().getTitle();
+        String text = "От: "+ u.getUserName() + "\n" + pr.getProduct().getTitle();
         List<Button> buttons = new ArrayList<>();
         Button aptButton = new Button("Одобрить", "Approver_" + pr.getReservation().getId() + " " + order.getId());
         buttons.add(aptButton);
@@ -2716,7 +2715,8 @@ public class TelBot extends TelegramLongPollingBot {
 
     public void getQuestion(Question question, long chatId) {
         SendMessage message = new SendMessage();
-        message.setText(question.getQue());
+        String textToMessage = "От: " + question.getUser().getUserName() + "\n" + question.getQue();
+        message.setText(textToMessage);
         message.setChatId(String.valueOf(chatId));
         List<Button> buttons = new ArrayList<>();
         Button answerButton = new Button("Ответить", "answer");
@@ -2769,7 +2769,7 @@ public class TelBot extends TelegramLongPollingBot {
                 for (var o:
                      products) {
                     if (o.getTitle().equals(j.getTitle()) && !strings.contains(o.getTitle())) {
-                        text.append(ind).append(" ").append(o.getTitle());
+                        text.append(ind).append(" ").append(o.getTitle()).append(" (").append(o.getCountAvailable()).append(")");
                         for (var k:
                                 products) {
                             if (o.getTitle().equals(k.getTitle())) {
