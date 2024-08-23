@@ -1823,7 +1823,7 @@ public class TelBot extends TelegramLongPollingBot {
                     if (k == orderImageRepository.findByOrder(ord).size() - 1) {
                         urls.append(im.getImage().getUrlToDisk());
                     } else {
-                        urls.append(im.getImage().getUrlToDisk());
+                        urls.append(im.getImage().getUrlToDisk()).append("\n");
                     }
                 }
                 String u = urls.toString();
