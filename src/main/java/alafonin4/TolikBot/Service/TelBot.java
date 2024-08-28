@@ -1353,6 +1353,7 @@ public class TelBot extends TelegramLongPollingBot {
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
             u.setStage(Stage.EnterCountToAddToRes);
+            System.out.println(u.getChatId() + " " + u.getUserName() + " " + u.getName() + " " + u.getNumberOfInvitedUsers() + " " + u.getRole());
             userRepository.save(u);
         }
         if (callbackData.startsWith("subRes_")) {
