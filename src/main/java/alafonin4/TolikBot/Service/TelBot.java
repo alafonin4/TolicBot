@@ -90,6 +90,8 @@ public class TelBot extends TelegramLongPollingBot {
     Map<Long, List<List<Product>>> curProdToR;
     Map<Long, List<Image>> curImageInOrder;
     Map<Long, List<Image>> curImageInReview;
+    Map<Long, Product> currProdToAdd;
+    Map<Long, Product> currProdToSub;
 
     public TelBot(BotConfig config) {
         this.config = config;
@@ -107,6 +109,8 @@ public class TelBot extends TelegramLongPollingBot {
         this.curImageInReview = new HashMap<>();
         this.curProdToR = new HashMap<>();
         this.program = new ArrayList<>();
+        this.currProdToAdd = new HashMap<>();
+        this.currProdToSub = new HashMap<>();
         this.program.add("А пока давай я расскажу тебе про программу!");
         this.program.add("Professor SkinGood – это уходовая косметика, вдохновленная лучшими достижениями Кореи. " +
                 "В программе ты можешь попробовать 11 классных продуктов, которые Профессор создал специально для тебя.");
@@ -283,8 +287,8 @@ public class TelBot extends TelegramLongPollingBot {
         }
     }
     private String saveInYandexDisk(byte[] data, Integer cat, String filePath, Product product) {
-        String categoryString = cat == 0 ? "orders" : "reviews";
-        String folderPath = "projects/" + nameOfProject + "/" + categoryString + "/" + product.getTitle();
+        String categoryString = cat == 0 ? "Чеки" : "Отзывы";
+        String folderPath = "Проекты/" + nameOfProject + "/" + categoryString + "/" + product.getTitle();
         try {
             String uploadedFilePath = YandexDiskUploader.uploadFileToFolder(folderPath, filePath, data);
             String publicUrl = YandexDiskUploader.publishAndGetPublicLink(uploadedFilePath);
@@ -455,10 +459,24 @@ public class TelBot extends TelegramLongPollingBot {
             String number = callbackData.substring(5);
             long indOfProduct = Integer.parseInt(number);
 
+            Product pr = productRepository.findById(indOfProduct).get();
+            if (pr.getCountAvailable() == 0) {
+                SendMessage message = new SendMessage();
+                message.setChatId(String.valueOf(chatId));
+                message.setText("На товар: " + pr.getTitle() + " в магазине " + pr.getShop() + " закончились " +
+                        "бронирования.");
+
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+
             Reservation r = new Reservation();
             r.setUser(userRepository.findById(chatId).get());
 
-            Product pr = productRepository.findById(indOfProduct).get();
             int count = pr.getCountAvailable() - 1;
             pr.setCountAvailable(count);
             productRepository.save(pr);
@@ -744,6 +762,20 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                         showListOfUnseenOrders(chatId);
                         break;
+                    } else if (user.getStage().equals(Stage.EnterCountToAddToReservation) && !messageText.startsWith("/")) {
+                        var p = currProdToAdd.get(chatId);
+                        currProdToAdd.put(chatId, null);
+                        var i = Integer.parseInt(messageText);
+                        p.setCountAvailable(p.getCountAvailable() + i);
+                        productRepository.save(p);
+                        break;
+                    } else if (user.getStage().equals(Stage.EnterCountToSubToReservation) && !messageText.startsWith("/")) {
+                        var p = currProdToAdd.get(chatId);
+                        currProdToAdd.put(chatId, null);
+                        var i = Integer.parseInt(messageText);
+                        p.setCountAvailable(p.getCountAvailable() - i);
+                        productRepository.save(p);
+                        break;
                     }
                     sendMessage(chatId, "Извините, команда не распознана.");
                     break;
@@ -770,6 +802,26 @@ public class TelBot extends TelegramLongPollingBot {
                 ind++;
             }
             return;
+        }
+        if (callbackData.startsWith("addRes_")) {
+            String number = callbackData.substring(7);
+            long indOfProductRes = Integer.parseInt(number);
+
+            var pr = productRepository.findById(indOfProductRes).get();
+            currProdToAdd.putIfAbsent(chatId, pr);
+            User u = userRepository.findById(chatId).get();
+            u.setStage(Stage.EnterCountToAddToReservation);
+            userRepository.save(u);
+        }
+        if (callbackData.startsWith("subRes_")) {
+            String number = callbackData.substring(7);
+            long indOfProductRes = Integer.parseInt(number);
+
+            var pr = productRepository.findById(indOfProductRes).get();
+            currProdToSub.putIfAbsent(chatId, pr);
+            User u = userRepository.findById(chatId).get();
+            u.setStage(Stage.EnterCountToSubToReservation);
+            userRepository.save(u);
         }
         if (callbackData.startsWith("review_")) {
             String number = callbackData.substring(7);
@@ -1066,6 +1118,11 @@ public class TelBot extends TelegramLongPollingBot {
                 userRepository.save(us1);
                 sendReview(chatId);
                 break;
+            case "addReservation":
+                chooseProductToAddReservation(chatId);
+                break;
+            case "subReservation":
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
@@ -1250,6 +1307,20 @@ public class TelBot extends TelegramLongPollingBot {
                     } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
                         newModerator(chatId, normalizeUsername(messageText));
                         break;
+                    } else if (user.getStage().equals(Stage.EnterCountToAddToReservation) && !messageText.startsWith("/")) {
+                        var p = currProdToAdd.get(chatId);
+                        currProdToAdd.put(chatId, null);
+                        var i = Integer.parseInt(messageText);
+                        p.setCountAvailable(p.getCountAvailable() + i);
+                        productRepository.save(p);
+                        break;
+                    } else if (user.getStage().equals(Stage.EnterCountToSubToReservation) && !messageText.startsWith("/")) {
+                        var p = currProdToAdd.get(chatId);
+                        currProdToAdd.put(chatId, null);
+                        var i = Integer.parseInt(messageText);
+                        p.setCountAvailable(p.getCountAvailable() - i);
+                        productRepository.save(p);
+                        break;
                     }
                     sendMessage(chatId, "Извините, команда не распознана.");
                     break;
@@ -1273,7 +1344,26 @@ public class TelBot extends TelegramLongPollingBot {
             curProdToR.put(chatId, prList);
             return;
         }
+        if (callbackData.startsWith("addRes_")) {
+            String number = callbackData.substring(7);
+            long indOfProductRes = Integer.parseInt(number);
 
+            var pr = productRepository.findById(indOfProductRes).get();
+            currProdToAdd.putIfAbsent(chatId, pr);
+            User u = userRepository.findById(chatId).get();
+            u.setStage(Stage.EnterCountToAddToReservation);
+            userRepository.save(u);
+        }
+        if (callbackData.startsWith("subRes_")) {
+            String number = callbackData.substring(7);
+            long indOfProductRes = Integer.parseInt(number);
+
+            var pr = productRepository.findById(indOfProductRes).get();
+            currProdToSub.putIfAbsent(chatId, pr);
+            User u = userRepository.findById(chatId).get();
+            u.setStage(Stage.EnterCountToSubToReservation);
+            userRepository.save(u);
+        }
         if (callbackData.startsWith("order_")) {
             String number = callbackData.substring(6);
             long indOfProductRes = Integer.parseInt(number);
@@ -1627,6 +1717,150 @@ public class TelBot extends TelegramLongPollingBot {
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
+        }
+    }
+    private void chooseProductToAddReservation(long chatId) {
+        StringBuilder text = new StringBuilder();
+        SendMessage message = new SendMessage();
+        message.setChatId(String.valueOf(chatId));
+        List<List<Button>> buttons = new ArrayList<>();
+        List<Button> currentRow = new ArrayList<>();
+        var products1 = productRepository
+                .findAllByNameOfProject(nameOfProject);
+        List<Product> products = new ArrayList<>();
+        for (var pr:
+                products1) {
+            if (pr.getStat().equals(Stat.Unseen)) {
+                continue;
+            }
+            products.add(pr);
+        }
+        String list = "";
+        if (!products.isEmpty()) {
+            int i = 1;
+            Set<String> strings = new HashSet<>();
+
+            int ind = 1;
+            for (var j:
+                    products) {
+                if (strings.contains(j.getTitle())) {
+                    continue;
+                }
+                for (var o:
+                        products) {
+                    if (o.getTitle().equals(j.getTitle()) && !strings.contains(o.getTitle())) {
+                        text.append("[").append(ind).append("]")
+                                .append(" ").append(o.getTitle()).append(":\n");
+                        for (var k:
+                                products) {
+                            if (o.getTitle().equals(k.getTitle())) {
+                                if (k.getCountAvailable() == 0) {
+                                    continue;
+                                }
+                                Button prButton = new Button(String.valueOf(ind) + " "
+                                        + k.getShop(), "addRes_" + k.getId());
+                                text.append("В ").append(k.getShop())
+                                        .append(" осталось ")
+                                        .append(k.getCountAvailable()).append(" бронирований.\n");
+                                currentRow.add(prButton);
+                                if (currentRow.size() == 3) {
+                                    buttons.add(new ArrayList<>(currentRow));
+                                    currentRow.clear();
+                                }
+                            }
+                        }
+                        strings.add(o.getTitle());
+                    }
+                }
+                ind++;
+                text.append("\n");
+            }
+            if (!currentRow.isEmpty()) {
+                buttons.add(new ArrayList<>(currentRow));
+                currentRow.clear();
+            }
+        }
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(text.toString());
+        var markup = KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons);
+        sendMessage.setReplyMarkup(markup);
+        try {
+            execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void chooseProductToSubReservation(long chatId) {
+        StringBuilder text = new StringBuilder();
+        SendMessage message = new SendMessage();
+        message.setChatId(String.valueOf(chatId));
+        List<List<Button>> buttons = new ArrayList<>();
+        List<Button> currentRow = new ArrayList<>();
+        var products1 = productRepository
+                .findAllByNameOfProject(nameOfProject);
+        List<Product> products = new ArrayList<>();
+        for (var pr:
+                products1) {
+            if (pr.getStat().equals(Stat.Unseen)) {
+                continue;
+            }
+            products.add(pr);
+        }
+        String list = "";
+        if (!products.isEmpty()) {
+            int i = 1;
+            Set<String> strings = new HashSet<>();
+
+            int ind = 1;
+            for (var j:
+                    products) {
+                if (strings.contains(j.getTitle())) {
+                    continue;
+                }
+                for (var o:
+                        products) {
+                    if (o.getTitle().equals(j.getTitle()) && !strings.contains(o.getTitle())) {
+                        text.append("[").append(ind).append("]")
+                                .append(" ").append(o.getTitle()).append(":\n");
+                        for (var k:
+                                products) {
+                            if (o.getTitle().equals(k.getTitle())) {
+                                if (k.getCountAvailable() == 0) {
+                                    continue;
+                                }
+                                Button prButton = new Button(String.valueOf(ind) + " "
+                                        + k.getShop(), "subRes_" + k.getId());
+                                text.append("В ").append(k.getShop())
+                                        .append(" осталось ")
+                                        .append(k.getCountAvailable()).append(" бронирований.\n");
+                                currentRow.add(prButton);
+                                if (currentRow.size() == 3) {
+                                    buttons.add(new ArrayList<>(currentRow));
+                                    currentRow.clear();
+                                }
+                            }
+                        }
+                        strings.add(o.getTitle());
+                    }
+                }
+                ind++;
+                text.append("\n");
+            }
+            if (!currentRow.isEmpty()) {
+                buttons.add(new ArrayList<>(currentRow));
+                currentRow.clear();
+            }
+        }
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(text.toString());
+        var markup = KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons);
+        sendMessage.setReplyMarkup(markup);
+        try {
+            execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     private void getReport(long chatId) {
@@ -2416,10 +2650,12 @@ public class TelBot extends TelegramLongPollingBot {
         List<Button> buttons = new ArrayList<>();
         Button orderButton = new Button("Добавить новый товар", "addItem");
         Button questionButton = new Button("Скрыть товар", "deleteItem");
-        Button questButton = new Button("Изменить товар", "changeItem");
+        Button questButton = new Button("+бронь", "addReservation");
+        Button quesButton = new Button("-бронь", "subReservation");
         buttons.add(orderButton);
         buttons.add(questionButton);
         buttons.add(questButton);
+        buttons.add(quesButton);
         InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
         message.setReplyMarkup(markup);
         try {
@@ -2531,7 +2767,7 @@ public class TelBot extends TelegramLongPollingBot {
         User u = order.getUser();
         ProductReservation pr = order.getProductReservation();
 
-        String text = "От: "+ u.getUserName() + "\n" + pr.getProduct().getTitle();
+        String text = "От: "+ u.getUserName() + "\nЧек по продукту: " + pr.getProduct().getTitle();
         List<Button> buttons = new ArrayList<>();
         Button aptButton = new Button("Одобрить", "Approved_" + pr.getReservation().getId() + " " + order.getId());
         buttons.add(aptButton);
@@ -2625,7 +2861,7 @@ public class TelBot extends TelegramLongPollingBot {
         User u = order.getUser();
         ProductReservation pr = order.getProductReservation();
 
-        String text = "От: "+ u.getUserName() + "\n" + pr.getProduct().getTitle();
+        String text = "От: "+ u.getUserName() + "\nОтзыв по продукту: " + pr.getProduct().getTitle();
         List<Button> buttons = new ArrayList<>();
         Button aptButton = new Button("Одобрить", "Approver_" + pr.getReservation().getId() + " " + order.getId());
         buttons.add(aptButton);
@@ -2715,7 +2951,7 @@ public class TelBot extends TelegramLongPollingBot {
 
     public void getQuestion(Question question, long chatId) {
         SendMessage message = new SendMessage();
-        String textToMessage = "От: " + question.getUser().getUserName() + "\n" + question.getQue();
+        String textToMessage = "От: " + question.getUser().getUserName() + "\nВопрос: " + question.getQue();
         message.setText(textToMessage);
         message.setChatId(String.valueOf(chatId));
         List<Button> buttons = new ArrayList<>();
@@ -2756,7 +2992,7 @@ public class TelBot extends TelegramLongPollingBot {
             products.add(pr);
         }
         String list = "";
-        if (products != null) {
+        if (!products.isEmpty()) {
             int i = 1;
             Set<String> strings = new HashSet<>();
 
@@ -3027,11 +3263,13 @@ public class TelBot extends TelegramLongPollingBot {
             }
 
             userRepository.save(user);
+
             currentInds.put(chatId, 0);
             currentProdResInReview.put(chatId, new ArrayList<>());
             currentProdResInOrder.put(chatId, new ArrayList<>());
             curProdToR.put(chatId, new ArrayList<>());
             hasInvited.put(chatId, true);
+
             if (chatId == 959316826L) {
                 usersRole.put(chatId, Role.Admin);
             } else {
