@@ -1,8 +1,8 @@
 package alafonin4.TolikBot.Entity;
 
 public enum Stage {
-    EnterCountToAddToReservation,
-    EnterCountToSubToReservation,
+    EnterCountToAddToRes,
+    EnterCountToSubToRes,
     EnterFirstName,
     EnterNameOfItemToDelete,
     EnterNameOfItemToAdd,
