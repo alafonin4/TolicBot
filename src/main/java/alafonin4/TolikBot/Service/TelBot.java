@@ -1122,6 +1122,7 @@ public class TelBot extends TelegramLongPollingBot {
                 chooseProductToAddReservation(chatId);
                 break;
             case "subReservation":
+                chooseProductToSubReservation(chatId);
                 break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
@@ -1714,6 +1715,12 @@ public class TelBot extends TelegramLongPollingBot {
 
                 curImageInOrder.put(chatId, new ArrayList<>());
                 break;
+            case "addReservation":
+                chooseProductToAddReservation(chatId);
+                break;
+            case "subReservation":
+                chooseProductToSubReservation(chatId);
+                break;    
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
