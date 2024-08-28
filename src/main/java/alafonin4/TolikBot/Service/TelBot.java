@@ -762,14 +762,14 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                         showListOfUnseenOrders(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToAddToReservation) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterCountToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToSubToReservation) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterCountToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -810,7 +810,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToAddToReservation);
+            u.setStage(Stage.EnterCountToAddToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("subRes_")) {
@@ -820,7 +820,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToSubToReservation);
+            u.setStage(Stage.EnterCountToSubToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("review_")) {
@@ -1308,14 +1308,14 @@ public class TelBot extends TelegramLongPollingBot {
                     } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
                         newModerator(chatId, normalizeUsername(messageText));
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToAddToReservation) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterCountToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToSubToReservation) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterCountToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -1352,7 +1352,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToAddToReservation);
+            u.setStage(Stage.EnterCountToAddToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("subRes_")) {
@@ -1362,7 +1362,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToSubToReservation);
+            u.setStage(Stage.EnterCountToSubToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("order_")) {
