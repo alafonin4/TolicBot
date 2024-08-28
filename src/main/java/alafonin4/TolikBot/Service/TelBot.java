@@ -1720,7 +1720,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "subReservation":
                 chooseProductToSubReservation(chatId);
-                break;    
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
@@ -1766,6 +1766,7 @@ public class TelBot extends TelegramLongPollingBot {
                                 }
                                 Button prButton = new Button(String.valueOf(ind) + " "
                                         + k.getShop(), "addRes_" + k.getId());
+                                System.out.println(prButton.getText() + " " + prButton.getCallBack());
                                 text.append("В ").append(k.getShop())
                                         .append(" осталось ")
                                         .append(k.getCountAvailable()).append(" бронирований.\n");
