@@ -23,5 +23,6 @@ public enum Stage {
     EnterCostOfItem,
     ChangingList,
     EnterToAddToRes,
-    EnterToSubToRes
+    EnterToSubToRes,
+    EnterUrlOfItemToAdd
 }
