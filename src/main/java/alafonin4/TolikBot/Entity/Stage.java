@@ -1,8 +1,6 @@
 package alafonin4.TolikBot.Entity;
 
 public enum Stage {
-    EnterToAddToRes,
-    EnterToSubToRes,
     EnterFirstName,
     EnterNameOfItemToDelete,
     EnterNameOfItemToAdd,
@@ -23,5 +21,7 @@ public enum Stage {
     ChangingStatInItem,
     DoingNothing,
     EnterCostOfItem,
-    ChangingList
+    ChangingList,
+    EnterToAddToRes,
+    EnterToSubToRes
 }
