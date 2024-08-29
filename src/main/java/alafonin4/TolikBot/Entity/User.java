@@ -22,6 +22,10 @@ public class User {
     private Role role;
 
     @Enumerated(value = EnumType.STRING)
+    @Column(name = "stage", nullable = false)
+    private Stage stage;
+
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "stageOfUsing", nullable = true)
     private Stage stageOfUsing;
 
