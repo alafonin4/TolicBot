@@ -1237,6 +1237,9 @@ public class TelBot extends TelegramLongPollingBot {
                     } else if (user.getStage().equals(Stage.EnterCountOfItemToAdd) && !messageText.startsWith("/")) {
                         setCountToItem(chatId, messageText);
                         break;
+                    } else if (user.getStage().equals(Stage.EnterUrlOfItemToAdd) && !messageText.startsWith("/")) {
+                        setUrlOfItem(chatId, messageText);
+                        break;
                     } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
                         user2.setStage(Stage.DoingNothing);
@@ -1771,9 +1774,8 @@ public class TelBot extends TelegramLongPollingBot {
                                 if (k.getCountAvailable() == 0) {
                                     continue;
                                 }
-                                Button prButton = new Button(String.valueOf(ind) + " "
+                                Button prButton = new Button("[" + ind + "] "
                                         + k.getShop(), "addRes_" + k.getId());
-                                System.out.println(prButton.getText() + " " + prButton.getCallBack());
                                 text.append("В ").append(k.getShop())
                                         .append(" осталось ")
                                         .append(k.getCountAvailable()).append(" бронирований.\n");
@@ -2463,10 +2465,18 @@ public class TelBot extends TelegramLongPollingBot {
         Product p = curProd.get(chatId);
         p.setCountAvailable(Integer.parseInt(message));
         p.setStat(Stat.Seen);
-        productRepository.save(p);
+        User u = userRepository.findById(chatId).get();
+        u.setStage(Stage.EnterUrlOfItemToAdd);
+        userRepository.save(u);
+        sendMessage(chatId, "Введите url-товара для этого магазина");
+    }
+    private void setUrlOfItem(long chatId, String message) {
+        Product p = curProd.get(chatId);
+        p.setUrl(message);
         User u = userRepository.findById(chatId).get();
         u.setStage(Stage.DoingNothing);
         userRepository.save(u);
+        productRepository.save(p);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText("Товар был добавлен.");
@@ -3020,7 +3030,8 @@ public class TelBot extends TelegramLongPollingBot {
                 for (var o:
                      products) {
                     if (o.getTitle().equals(j.getTitle()) && !strings.contains(o.getTitle())) {
-                        text.append(ind).append(" ").append(o.getTitle()).append(" (").append(o.getCountAvailable()).append(")");
+                        text.append("[").append(ind).append("]")
+                            .append(" ").append(o.getTitle()).append(":\n");
                         for (var k:
                                 products) {
                             if (o.getTitle().equals(k.getTitle())) {
@@ -3029,6 +3040,15 @@ public class TelBot extends TelegramLongPollingBot {
                                 }
                                 Button prButton = new Button(String.valueOf(ind) + " "
                                         + k.getShop(), "shop_" + k.getId());
+                                String ur = "";
+                                if (k.getUrl() != null) {
+                                    ur = "<a href='" + k.getUrl() + "'>" + k.getShop() +"</a>";
+                                } else {
+                                    ur = k.getShop();
+                                }
+                                text.append("В ").append(ur)
+                                        .append(" осталось ")
+                                        .append(k.getCountAvailable()).append(" бронирований.\n");
                                 currentRow.add(prButton);
                                 if (currentRow.size() == 3) {
                                     buttons.add(new ArrayList<>(currentRow));
@@ -3063,6 +3083,7 @@ public class TelBot extends TelegramLongPollingBot {
         message.setText(text + list + text1);
         InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboardWithRaw(buttons);
         message.setReplyMarkup(markup);
+        message.disableWebPagePreview();
 
         try {
             execute(message);
