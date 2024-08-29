@@ -138,9 +138,9 @@ public class TelBot extends TelegramLongPollingBot {
         var users = userRepository.findAll();
         for (var i:
                 users) {
-            i.setStage(null);
+            i.setStageOfUsing(null);
             userRepository.save(i);
-            i.setStage(Stage.DoingNothing);
+            i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
         }
         if (update.hasMessage() && update.hasPollAnswer()) {
@@ -153,7 +153,7 @@ public class TelBot extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             User user = userRepository.findById(chatId).get();
             if (true || user.getRole().equals(Role.Customer)) {
-                if (user.getStage().equals(Stage.EnterImageOrder) || user.getStage().equals(Stage.EnterImageReview)) {
+                if (user.getStageOfUsing().equals(Stage.EnterImageOrder) || user.getStageOfUsing().equals(Stage.EnterImageReview)) {
                     var photos = update.getMessage().getPhoto();
 
                     PhotoSize largestPhoto = photos.stream()
@@ -175,7 +175,7 @@ public class TelBot extends TelegramLongPollingBot {
                     StringBuilder text = new StringBuilder();
                     List<List<Button>> buttons = new ArrayList<>();
 
-                    if (user.getStage().equals(Stage.EnterImageOrder)) {
+                    if (user.getStageOfUsing().equals(Stage.EnterImageOrder)) {
                         if (currentProdResInOrder.get(chatId).size() == 0) {
                             text.append("Вы уже отправили изображения заказа на все бронирования.\n");
                         } else {
@@ -207,7 +207,7 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                     }
 
-                    if (user.getStage().equals(Stage.EnterImageReview)) {
+                    if (user.getStageOfUsing().equals(Stage.EnterImageReview)) {
                         if (currentProdResInReview.get(chatId).size() == 0) {
                             text.append("Вы уже отправили изображения отзывов ко всем заказам.\n");
                         } else {
@@ -321,12 +321,12 @@ public class TelBot extends TelegramLongPollingBot {
         }
         if (messageText.equals(SENDORDERIMAGE)) {
             curCat.put(chatId, 0);
-            user.setStage(Stage.EnterImageOrder);
+            user.setStageOfUsing(Stage.EnterImageOrder);
             userRepository.save(user);
             sendScreen(chatId);
         } else if (messageText.equals(SENDREVIEWIMAGE)) {
             curCat.put(chatId, 1);
-            user.setStage(Stage.EnterImageReview);
+            user.setStageOfUsing(Stage.EnterImageReview);
             userRepository.save(user);
             sendReview(chatId);
         } else if (messageText.equals(PRODUCT)) {
@@ -364,13 +364,13 @@ public class TelBot extends TelegramLongPollingBot {
                     break;
                 case "/review":
                     curCat.put(chatId, 1);
-                    user.setStage(Stage.EnterImageReview);
+                    user.setStageOfUsing(Stage.EnterImageReview);
                     userRepository.save(user);
                     sendReview(chatId);
                     break;
                 case "/screen":
                     curCat.put(chatId, 0);
-                    user.setStage(Stage.EnterImageOrder);
+                    user.setStageOfUsing(Stage.EnterImageOrder);
                     userRepository.save(user);
                     sendScreen(chatId);
                     break;
@@ -378,19 +378,19 @@ public class TelBot extends TelegramLongPollingBot {
                     AskTolic(chatId);
                     break;
                 default:
-                    if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                    if (user.getStageOfUsing().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
                         SetUserName(chatId, normalizeUsername(messageText));
                         greatings(chatId);
                         friendInviteYou(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
 
                         SetUserNameOfFriend(chatId, messageText);
                         send(chatId);
                         sendFirstPageOfProgram(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
-                        user.setStage(Stage.DoingNothing);
+                    } else if (user.getStageOfUsing().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
+                        user.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user);
                         if(userRepository.findById(chatId).isPresent()){
                             Question q = new Question();
@@ -403,9 +403,9 @@ public class TelBot extends TelegramLongPollingBot {
                             sendMessage(chatId, "Я скоро вернусь! Передал твой вопрос человеку!");
                         }
                         break;
-                    } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Question unseenQuestion = questionRepository
                                 .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
@@ -565,7 +565,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "Yes":
                 User user1 = userRepository.findById(chatId).get();
-                user1.setStage(Stage.EnterUserNameOfFriend);
+                user1.setStageOfUsing(Stage.EnterUserNameOfFriend);
                 userRepository.save(user1);
                 editMessageAfterChooseInvited(chatId, messageId);
                 invitedByFriend(chatId);
@@ -583,7 +583,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "sentItAll":
                 User u = userRepository.findById(chatId).get();
-                u.setStage(Stage.EnterUserNameOfFriend);
+                u.setStageOfUsing(Stage.EnterUserNameOfFriend);
                 userRepository.save(u);
                 sendMessage(chatId, "Спасибо! Я покажу всё человеку и вернусь. " +
                         "Не волнуйся, если это займет 1-2 дня. Я вернусь к тебе, как только человек проверит " +
@@ -606,14 +606,14 @@ public class TelBot extends TelegramLongPollingBot {
             case "sendOrder":
                 User us = userRepository.findById(chatId).get();
                 curCat.put(chatId, 0);
-                us.setStage(Stage.EnterImageOrder);
+                us.setStageOfUsing(Stage.EnterImageOrder);
                 userRepository.save(us);
                 sendScreen(chatId);
                 break;
             case "sendReview":
                 User us1 = userRepository.findById(chatId).get();
                 curCat.put(chatId, 1);
-                us1.setStage(Stage.EnterImageReview);
+                us1.setStageOfUsing(Stage.EnterImageReview);
                 userRepository.save(us1);
                 sendReview(chatId);
                 break;
@@ -633,12 +633,12 @@ public class TelBot extends TelegramLongPollingBot {
 
         if (messageText.equals(SENDORDERIMAGE)) {
             curCat.put(chatId, 0);
-            user.setStage(Stage.EnterImageOrder);
+            user.setStageOfUsing(Stage.EnterImageOrder);
             userRepository.save(user);
             sendScreen(chatId);
         } else if (messageText.equals(SENDREVIEWIMAGE)) {
             curCat.put(chatId, 1);
-            user.setStage(Stage.EnterImageReview);
+            user.setStageOfUsing(Stage.EnterImageReview);
             userRepository.save(user);
             sendReview(chatId);
         } else if (messageText.equals(PRODUCT)) {
@@ -678,13 +678,13 @@ public class TelBot extends TelegramLongPollingBot {
                     break;
                 case "/review":
                     curCat.put(chatId, 1);
-                    user.setStage(Stage.EnterImageReview);
+                    user.setStageOfUsing(Stage.EnterImageReview);
                     userRepository.save(user);
                     sendReview(chatId);
                     break;
                 case "/screen":
                     curCat.put(chatId, 0);
-                    user.setStage(Stage.EnterImageOrder);
+                    user.setStageOfUsing(Stage.EnterImageOrder);
                     userRepository.save(user);
                     sendScreen(chatId);
                     break;
@@ -695,36 +695,36 @@ public class TelBot extends TelegramLongPollingBot {
                     moderation(chatId);
                     break;
                 default:
-                    if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                    if (user.getStageOfUsing().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
                         SetUserName(chatId, messageText);
                         greatings(chatId);
                         friendInviteYou(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
                         SetUserNameOfFriend(chatId, messageText);
                         send(chatId);
                         sendFirstPageOfProgram(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                         order.setStatus(Status.Disapproved);
                         orderRepository.save(order);
                         sendMessage(order.getUser().getChatId(), "Заказ отклонен по причине:\n" + messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Review order = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                         order.setStatus(Status.Disapproved);
                         reviewRepository.save(order);
                         sendMessage(order.getUser().getChatId(), "Отзыв отклонен по причине:\n" + messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
-                        user.setStage(Stage.DoingNothing);
+                    } else if (user.getStageOfUsing().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
+                        user.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user);
                         if(userRepository.findById(chatId).isPresent()){
                             Question q = new Question();
@@ -737,9 +737,9 @@ public class TelBot extends TelegramLongPollingBot {
                             sendMessage(chatId, "Я скоро вернусь! Передал твой вопрос человеку!");
                         }
                         break;
-                    } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Question unseenQuestion = questionRepository
                                 .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
@@ -755,9 +755,9 @@ public class TelBot extends TelegramLongPollingBot {
                         sendMessage(u.getChatId(), "Ответ на ваш вопрос:\n" + messageText);
                         showListOfUnseenQuestions(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Integer cost = Integer.parseInt(messageText);
                         var res = reservationToPay.get(user2.getChatId());
@@ -770,14 +770,14 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                         showListOfUnseenOrders(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -818,7 +818,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterToAddToRes);
+            u.setStageOfUsing(Stage.EnterToAddToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("subRes_")) {
@@ -828,7 +828,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterToSubToRes);
+            u.setStageOfUsing(Stage.EnterToSubToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("review_")) {
@@ -922,7 +922,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = or.getUser();
 
             User user2 = userRepository.findById(chatId).get();
-            user2.setStage(Stage.DoingNothing);
+            user2.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(user2);
             sendMessage(u.getChatId(), "\uD83C\uDF8A Модерация всех " +
                     "твоих отзывов пройдена! \uD83C\uDF8A\n");
@@ -971,7 +971,7 @@ public class TelBot extends TelegramLongPollingBot {
 
             sendMessage(chatId, "Введите стоимость товара из чека");
             User user2 = userRepository.findById(chatId).get();
-            user2.setStage(Stage.EnterCostOfItem);
+            user2.setStageOfUsing(Stage.EnterCostOfItem);
             reservationToPay.put(user2.getChatId(), res);
             userRepository.save(user2);
             sendMessage(u.getChatId(), "\uD83C\uDF89 Спасибо. Модерация пройдена и я забронировал тебе возмещение. \n" +
@@ -1038,7 +1038,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "Yes":
                 User user1 = userRepository.findById(chatId).get();
-                user1.setStage(Stage.EnterUserNameOfFriend);
+                user1.setStageOfUsing(Stage.EnterUserNameOfFriend);
                 userRepository.save(user1);
                 editMessageAfterChooseInvited(chatId, messageId);
                 invitedByFriend(chatId);
@@ -1057,7 +1057,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "answer":
                 User user = userRepository.findById(chatId).get();
-                user.setStage(Stage.AnsweringQuestion);
+                user.setStageOfUsing(Stage.AnsweringQuestion);
                 userRepository.save(user);
                 break;
             case "Next":
@@ -1070,7 +1070,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "noThatImage":
                 User user5 = userRepository.findById(chatId).get();
-                user5.setStage(Stage.DoingNothing);
+                user5.setStageOfUsing(Stage.DoingNothing);
                 userRepository.save(user5);
                 Review order1 = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                 order1.setStatus(Status.Disapproved);
@@ -1081,12 +1081,12 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "enterManually":
                 User user6 = userRepository.findById(chatId).get();
-                user6.setStage(Stage.EnterReasonManuallyToReview);
+                user6.setStageOfUsing(Stage.EnterReasonManuallyToReview);
                 userRepository.save(user6);
                 break;
             case "enterReason":
                 User user4 = userRepository.findById(chatId).get();
-                user4.setStage(Stage.DoingNothing);
+                user4.setStageOfUsing(Stage.DoingNothing);
                 userRepository.save(user4);
                 Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                 order.setStatus(Status.Disapproved);
@@ -1097,7 +1097,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "enterReasonManually":
                 User user2 = userRepository.findById(chatId).get();
-                user2.setStage(Stage.EnterReasonManually);
+                user2.setStageOfUsing(Stage.EnterReasonManually);
                 userRepository.save(user2);
                 break;
             case "WantMore":
@@ -1115,14 +1115,14 @@ public class TelBot extends TelegramLongPollingBot {
             case "sendOrder":
                 User us = userRepository.findById(chatId).get();
                 curCat.put(chatId, 0);
-                us.setStage(Stage.EnterImageOrder);
+                us.setStageOfUsing(Stage.EnterImageOrder);
                 userRepository.save(us);
                 sendScreen(chatId);
                 break;
             case "sendReview":
                 User us1 = userRepository.findById(chatId).get();
                 curCat.put(chatId, 1);
-                us1.setStage(Stage.EnterImageReview);
+                us1.setStageOfUsing(Stage.EnterImageReview);
                 userRepository.save(us1);
                 sendReview(chatId);
                 break;
@@ -1147,12 +1147,12 @@ public class TelBot extends TelegramLongPollingBot {
         }
         if (messageText.equals(SENDORDERIMAGE)) {
             curCat.put(chatId, 0);
-            user.setStage(Stage.EnterImageOrder);
+            user.setStageOfUsing(Stage.EnterImageOrder);
             userRepository.save(user);
             sendScreen(chatId);
         } else if (messageText.equals(SENDREVIEWIMAGE)) {
             curCat.put(chatId, 1);
-            user.setStage(Stage.EnterImageReview);
+            user.setStageOfUsing(Stage.EnterImageReview);
             userRepository.save(user);
             sendReview(chatId);
         } else if (messageText.equals(PRODUCT)) {
@@ -1200,13 +1200,13 @@ public class TelBot extends TelegramLongPollingBot {
                     break;
                 case "/review":
                     curCat.put(chatId, 1);
-                    user.setStage(Stage.EnterImageReview);
+                    user.setStageOfUsing(Stage.EnterImageReview);
                     userRepository.save(user);
                     sendReview(chatId);
                     break;
                 case "/screen":
                     curCat.put(chatId, 0);
-                    user.setStage(Stage.EnterImageOrder);
+                    user.setStageOfUsing(Stage.EnterImageOrder);
                     userRepository.save(user);
                     sendScreen(chatId);
                     break;
@@ -1226,48 +1226,48 @@ public class TelBot extends TelegramLongPollingBot {
                     ChangeListOfProducts(chatId);
                     break;
                 default:
-                    if (user.getStage().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
+                    if (user.getStageOfUsing().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
                         SetUserName(chatId, messageText);
                         greatings(chatId);
                         friendInviteYou(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterUserNameOfFriend) && !messageText.startsWith("/")) {
                         SetUserNameOfFriend(chatId, messageText);
                         send(chatId);
                         sendFirstPageOfProgram(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNameOfItemToAdd) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterNameOfItemToAdd) && !messageText.startsWith("/")) {
                         newItem(chatId, messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterShopOfItemToAdd) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterShopOfItemToAdd) && !messageText.startsWith("/")) {
                         setShopToItem(chatId, messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountOfItemToAdd) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterCountOfItemToAdd) && !messageText.startsWith("/")) {
                         setCountToItem(chatId, messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterUrlOfItemToAdd) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterUrlOfItemToAdd) && !messageText.startsWith("/")) {
                         setUrlOfItem(chatId, messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterReasonManually) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                         order.setStatus(Status.Disapproved);
                         orderRepository.save(order);
                         sendMessage(order.getUser().getChatId(), "Заказ отклонен по причине:\n" + messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterReasonManuallyToReview) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Review order = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                         order.setStatus(Status.Disapproved);
                         reviewRepository.save(order);
                         sendMessage(order.getUser().getChatId(), "Отзыв отклонен по причине:\n" + messageText);
                         break;
-                    } else if (user.getStage().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
-                        user.setStage(Stage.DoingNothing);
+                    } else if (user.getStageOfUsing().equals(Stage.AskingQuestion) && !messageText.startsWith("/")) {
+                        user.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user);
                         if(userRepository.findById(chatId).isPresent()){
                             Question q = new Question();
@@ -1280,9 +1280,9 @@ public class TelBot extends TelegramLongPollingBot {
                             sendMessage(chatId, "Я скоро вернусь! Передал твой вопрос человеку!");
                         }
                         break;
-                    } else if (user.getStage().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.AnsweringQuestion) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Question unseenQuestion = questionRepository
                                 .findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
@@ -1298,9 +1298,9 @@ public class TelBot extends TelegramLongPollingBot {
                         sendMessage(u.getChatId(), "Ответ на ваш вопрос:\n" + messageText);
                         showListOfUnseenQuestions(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterCostOfItem) && !messageText.startsWith("/")) {
                         User user2 = userRepository.findById(chatId).get();
-                        user2.setStage(Stage.DoingNothing);
+                        user2.setStageOfUsing(Stage.DoingNothing);
                         userRepository.save(user2);
                         Integer cost = Integer.parseInt(messageText);
                         var res = reservationToPay.get(user2.getChatId());
@@ -1313,20 +1313,20 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                         showListOfUnseenOrders(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNewAdminUser) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterNewAdminUser) && !messageText.startsWith("/")) {
                         newAdministrator(chatId, normalizeUsername(messageText));
                         break;
-                    } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
                         newModerator(chatId, normalizeUsername(messageText));
                         break;
-                    } else if (user.getStage().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStageOfUsing().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -1363,7 +1363,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterToAddToRes);
+            u.setStageOfUsing(Stage.EnterToAddToRes);
             var e = Stage.values();
             for (var i:
                  e) {
@@ -1379,7 +1379,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterToSubToRes);
+            u.setStageOfUsing(Stage.EnterToSubToRes);
             userRepository.save(u);
             return;
         }
@@ -1427,7 +1427,7 @@ public class TelBot extends TelegramLongPollingBot {
             sendMessage(chatId, "Введите название магазина, в котором продается продукт");
 
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterShopOfItemToAdd);
+            u.setStageOfUsing(Stage.EnterShopOfItemToAdd);
             userRepository.save(u);
             return;
         }
@@ -1479,7 +1479,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = or.getUser();
 
             User user2 = userRepository.findById(chatId).get();
-            user2.setStage(Stage.DoingNothing);
+            user2.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(user2);
             sendMessage(u.getChatId(), "\uD83C\uDF8A Модерация всех " +
                     "твоих отзывов пройдена! \uD83C\uDF8A\n");
@@ -1528,7 +1528,7 @@ public class TelBot extends TelegramLongPollingBot {
 
             sendMessage(chatId, "Введите стоимость товара из чека");
             User user2 = userRepository.findById(chatId).get();
-            user2.setStage(Stage.EnterCostOfItem);
+            user2.setStageOfUsing(Stage.EnterCostOfItem);
             reservationToPay.put(user2.getChatId(), res);
             userRepository.save(user2);
             sendMessage(u.getChatId(), "\uD83C\uDF89 Спасибо. Модерация пройдена и я забронировал тебе возмещение. \n" +
@@ -1622,7 +1622,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "answer":
                 User user = userRepository.findById(chatId).get();
-                user.setStage(Stage.AnsweringQuestion);
+                user.setStageOfUsing(Stage.AnsweringQuestion);
                 userRepository.save(user);
                 break;
             case "No":
@@ -1632,7 +1632,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "Yes":
                 User user1 = userRepository.findById(chatId).get();
-                user1.setStage(Stage.EnterUserNameOfFriend);
+                user1.setStageOfUsing(Stage.EnterUserNameOfFriend);
                 userRepository.save(user1);
                 editMessageAfterChooseInvited(chatId, messageId);
                 invitedByFriend(chatId);
@@ -1647,7 +1647,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "noThatImage":
                 User user5 = userRepository.findById(chatId).get();
-                user5.setStage(Stage.DoingNothing);
+                user5.setStageOfUsing(Stage.DoingNothing);
                 userRepository.save(user5);
                 Review order1 = reviewRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                 order1.setStatus(Status.Disapproved);
@@ -1658,12 +1658,12 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "enterManually":
                 User user6 = userRepository.findById(chatId).get();
-                user6.setStage(Stage.EnterReasonManuallyToReview);
+                user6.setStageOfUsing(Stage.EnterReasonManuallyToReview);
                 userRepository.save(user6);
                 break;
             case "enterReason":
                 User user4 = userRepository.findById(chatId).get();
-                user4.setStage(Stage.DoingNothing);
+                user4.setStageOfUsing(Stage.DoingNothing);
                 userRepository.save(user4);
                 Order order = orderRepository.findFirstByStatusOrderByCreatedAtDesc(Status.Unseen).get();
                 order.setStatus(Status.Disapproved);
@@ -1674,7 +1674,7 @@ public class TelBot extends TelegramLongPollingBot {
                 break;
             case "enterReasonManually":
                 User user2 = userRepository.findById(chatId).get();
-                user2.setStage(Stage.EnterReasonManually);
+                user2.setStageOfUsing(Stage.EnterReasonManually);
                 userRepository.save(user2);
                 break;
             case "endAddingItem":
@@ -1710,14 +1710,14 @@ public class TelBot extends TelegramLongPollingBot {
             case "sendOrder":
                 User us = userRepository.findById(chatId).get();
                 curCat.put(chatId, 0);
-                us.setStage(Stage.EnterImageOrder);
+                us.setStageOfUsing(Stage.EnterImageOrder);
                 userRepository.save(us);
                 sendScreen(chatId);
                 break;
             case "sendReview":
                 User us1 = userRepository.findById(chatId).get();
                 curCat.put(chatId, 1);
-                us1.setStage(Stage.EnterImageReview);
+                us1.setStageOfUsing(Stage.EnterImageReview);
                 userRepository.save(us1);
                 sendReview(chatId);
                 break;
@@ -2285,7 +2285,7 @@ public class TelBot extends TelegramLongPollingBot {
         sendMessage(chatId, "Введите имя пользователя в telegram, " +
                 "которому вы хотите дать роль администратора.");
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterNewAdminUser);
+        u.setStageOfUsing(Stage.EnterNewAdminUser);
         userRepository.save(u);
     }
     private void newAdministrator(long chatId, String message) {
@@ -2294,7 +2294,7 @@ public class TelBot extends TelegramLongPollingBot {
                     "потому что пользователь с этим именем " + message + " не воспользовался ботом или " +
                     "вы ввели неверный имя пользователя.");
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.DoingNothing);
+            u.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(u);
 
             return;
@@ -2335,7 +2335,7 @@ public class TelBot extends TelegramLongPollingBot {
         }
 
         User us = userRepository.findById(chatId).get();
-        us.setStage(Stage.DoingNothing);
+        us.setStageOfUsing(Stage.DoingNothing);
         userRepository.save(us);
         setUserCommands(chatIdOfNewAdmin);
     }
@@ -2343,7 +2343,7 @@ public class TelBot extends TelegramLongPollingBot {
         sendMessage(chatId, "Введите имя пользователя в telegram, " +
                 "которому вы хотите дать роль модератора.");
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterNewModeratorUser);
+        u.setStageOfUsing(Stage.EnterNewModeratorUser);
         userRepository.save(u);
     }
     private void newModerator(long chatId, String message) {
@@ -2352,7 +2352,7 @@ public class TelBot extends TelegramLongPollingBot {
                     "потому что пользователь с этим именем " + message + " не воспользовался ботом или " +
                     "вы ввели неверный имя пользователя.");
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.DoingNothing);
+            u.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(u);
             return;
         }
@@ -2387,13 +2387,13 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
         User us = userRepository.findById(chatId).get();
-        us.setStage(Stage.DoingNothing);
+        us.setStageOfUsing(Stage.DoingNothing);
         userRepository.save(us);
         setUserCommands(chatIdOfNewAdmin);
     }
     private void changeStatInItem(long chatId) {
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.ChangingStatInItem);
+        user.setStageOfUsing(Stage.ChangingStatInItem);
         userRepository.save(user);
         StringBuilder text = new StringBuilder("Какой продукт вы хотите скрыть");
 
@@ -2453,7 +2453,7 @@ public class TelBot extends TelegramLongPollingBot {
     }
     private void sendReview(long chatId) {
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.EnterImageReview);
+        user.setStageOfUsing(Stage.EnterImageReview);
         userRepository.save(user);
         String text = "Отправляй скорее.                                                                                                                      ❗❗Когда ты отправишь все скрины - нажми кнопку ‘я всё отправила!’ \n" +
                 "⚠Если ты её не видишь, нажми на иконку клавиатуры в правом нижнем углу экрана.";
@@ -2474,7 +2474,7 @@ public class TelBot extends TelegramLongPollingBot {
         p.setCountAvailable(Integer.parseInt(message));
         p.setStat(Stat.Seen);
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterUrlOfItemToAdd);
+        u.setStageOfUsing(Stage.EnterUrlOfItemToAdd);
         userRepository.save(u);
         sendMessage(chatId, "Введите url-товара для этого магазина");
     }
@@ -2482,7 +2482,7 @@ public class TelBot extends TelegramLongPollingBot {
         Product p = curProd.get(chatId);
         p.setUrl(message);
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.DoingNothing);
+        u.setStageOfUsing(Stage.DoingNothing);
         userRepository.save(u);
         productRepository.save(p);
         SendMessage sendMessage = new SendMessage();
@@ -2508,7 +2508,7 @@ public class TelBot extends TelegramLongPollingBot {
         Product p = curProd.get(chatId);
         p.setShop(message);
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterCountOfItemToAdd);
+        u.setStageOfUsing(Stage.EnterCountOfItemToAdd);
         userRepository.save(u);
         sendMessage(chatId, "Введите количества товара для этого магазина");
     }
@@ -2519,13 +2519,13 @@ public class TelBot extends TelegramLongPollingBot {
         curProd.put(chatId, product);
         sendMessage(chatId, "Введите название магазина, в котором продается продукт");
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterShopOfItemToAdd);
+        u.setStageOfUsing(Stage.EnterShopOfItemToAdd);
         userRepository.save(u);
     }
     private void addNewItem(long chatId) {
         sendMessage(chatId, "Введите название нового товара:");
         User u = userRepository.findById(chatId).get();
-        u.setStage(Stage.EnterNameOfItemToAdd);
+        u.setStageOfUsing(Stage.EnterNameOfItemToAdd);
         userRepository.save(u);
     }
     private void howToDelete(long chatId) {
@@ -3101,7 +3101,7 @@ public class TelBot extends TelegramLongPollingBot {
     }
     private void sendScreen(long chatId) {
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.EnterImageOrder);
+        user.setStageOfUsing(Stage.EnterImageOrder);
         userRepository.save(user);
         String text = "Отправляй скорее.                                                                                                                      ❗❗Когда ты отправишь все скрины - нажми кнопку ‘я всё отправила!’ \n" +
                 "⚠Если ты её не видишь, нажми на иконку клавиатуры в правом нижнем углу экрана.";
@@ -3171,7 +3171,7 @@ public class TelBot extends TelegramLongPollingBot {
     private void AskQuestion(long chatId) {
         String Text = "Отправляй скорее.";
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.AskingQuestion);
+        user.setStageOfUsing(Stage.AskingQuestion);
         userRepository.save(user);
         sendMessage(chatId, Text);
     }
@@ -3299,7 +3299,7 @@ public class TelBot extends TelegramLongPollingBot {
             user.setName(chat.getFirstName());
             user.setUserName(chat.getUserName());
             user.setNumberOfInvitedUsers(0);
-            user.setStage(Stage.EnterFirstName);
+            user.setStageOfUsing(Stage.EnterFirstName);
             if (chatId == 959316826L) {
                 user.setRole(Role.Admin);
             } else {
@@ -3524,7 +3524,7 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
         User us = userRepository.findById(chatId).get();
-        us.setStage(Stage.EnterFirstName);
+        us.setStageOfUsing(Stage.EnterFirstName);
         userRepository.save(us);
     }
     private void greatings(long chatId) {
@@ -3535,7 +3535,7 @@ public class TelBot extends TelegramLongPollingBot {
     private void SetUserName(long chatId, String messageText) {
         usersName.put(chatId, messageText);
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.CheckingInviting);
+        user.setStageOfUsing(Stage.CheckingInviting);
         userRepository.save(user);
     }
     private void SetUserNameOfFriend(long chatId, String messageText) {
@@ -3578,35 +3578,6 @@ public class TelBot extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
         message.setReplyMarkup(markup);
 
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-    private void support(long chatId) {
-        SendMessage message = new SendMessage();
-        message.setChatId(String.valueOf(chatId));
-        message.setText("Нажмите на кнопку, чтобы перейти на чат с поддержкой:");
-        Button chatButton = new Button("Чат с поддержкой", "Chat", "https://t.me/alafonin4");
-        List<Button> buttons = new ArrayList<>();
-        buttons.add(chatButton);
-        message.setReplyMarkup(KeyboardMarkupBuilder.setKeyboard(buttons));
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-    private void feedback(long chatId) {
-        SendMessage message = new SendMessage();
-        message.setChatId(String.valueOf(chatId));
-        message.setText("Нажмите на кнопку, чтобы пройти опрос про пользование бота:");
-        Button chatButton = new Button("Отзыв на бота", "Feedback",
-                "https://docs.google.com/forms/d/e/1FAIpQLSfLAWTncu_RwefxJI24X0jXotqKPCQZFFvcNbswfbVHZxPQ7w/viewform?usp=sharing");
-        List<Button> buttons = new ArrayList<>();
-        buttons.add(chatButton);
-        message.setReplyMarkup(KeyboardMarkupBuilder.setKeyboard(buttons));
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -3658,7 +3629,7 @@ public class TelBot extends TelegramLongPollingBot {
     }
     private void friendInviteYou(Long chatId) {
         User user = userRepository.findById(chatId).get();
-        user.setStage(Stage.CheckingInviting);
+        user.setStageOfUsing(Stage.CheckingInviting);
         userRepository.save(user);
         String str = "Скажи, пожалуйста, в программу тебя пригласила подруга \uD83D\uDC6D?";
         SendMessage message = new SendMessage();
