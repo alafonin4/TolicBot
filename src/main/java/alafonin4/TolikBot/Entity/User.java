@@ -22,7 +22,7 @@ public class User {
     private Role role;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "stage", nullable = true)
+    @Column(name = "stageOfUsing", nullable = true)
     private Stage stageOfUsing;
 
     @Column(name = "number_of_invited_users", nullable = false)
