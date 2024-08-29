@@ -820,6 +820,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToAddToRes);
             userRepository.save(u);
+            sendMessage(chatId, "Введите число бронирований, которые хотите добавить.");
         }
         if (callbackData.startsWith("subRes_")) {
             String number = callbackData.substring(7);
@@ -830,6 +831,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToSubToRes);
             userRepository.save(u);
+            sendMessage(chatId, "Введите число бронирований, которые хотите добавить.");
         }
         if (callbackData.startsWith("review_")) {
             String number = callbackData.substring(7);
@@ -3299,6 +3301,7 @@ public class TelBot extends TelegramLongPollingBot {
             user.setName(chat.getFirstName());
             user.setUserName(chat.getUserName());
             user.setNumberOfInvitedUsers(0);
+            user.setStage(Stage.DoingNothing);
             user.setStageOfUsing(Stage.EnterFirstName);
             if (chatId == 959316826L) {
                 user.setRole(Role.Admin);
