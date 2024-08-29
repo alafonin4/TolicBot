@@ -762,14 +762,14 @@ public class TelBot extends TelegramLongPollingBot {
                         }
                         showListOfUnseenOrders(chatId);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToAddToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToSubToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -810,7 +810,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToAddToRes);
+            u.setStage(Stage.EnterToAddToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("subRes_")) {
@@ -820,7 +820,7 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToSubToRes);
+            u.setStage(Stage.EnterToSubToRes);
             userRepository.save(u);
         }
         if (callbackData.startsWith("review_")) {
@@ -1308,14 +1308,14 @@ public class TelBot extends TelegramLongPollingBot {
                     } else if (user.getStage().equals(Stage.EnterNewModeratorUser) && !messageText.startsWith("/")) {
                         newModerator(chatId, normalizeUsername(messageText));
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToAddToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterToAddToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() + i);
                         productRepository.save(p);
                         break;
-                    } else if (user.getStage().equals(Stage.EnterCountToSubToRes) && !messageText.startsWith("/")) {
+                    } else if (user.getStage().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
                         var p = currProdToAdd.get(chatId);
                         currProdToAdd.put(chatId, null);
                         var i = Integer.parseInt(messageText);
@@ -1352,9 +1352,14 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.ChangingList);
-            System.out.println(u.getStage());
+            u.setStage(Stage.EnterToAddToRes);
+            var e = Stage.values();
+            for (var i:
+                 e) {
+                System.out.println(i.toString());
+            }
             userRepository.save(u);
+            return;
         }
         if (callbackData.startsWith("subRes_")) {
             String number = callbackData.substring(7);
@@ -1363,8 +1368,9 @@ public class TelBot extends TelegramLongPollingBot {
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToSub.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
-            u.setStage(Stage.EnterCountToSubToRes);
+            u.setStage(Stage.EnterToSubToRes);
             userRepository.save(u);
+            return;
         }
         if (callbackData.startsWith("order_")) {
             String number = callbackData.substring(6);
