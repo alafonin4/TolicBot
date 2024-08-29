@@ -3,6 +3,7 @@ package alafonin4.TolikBot.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 @Entity(name = "_user")
 @Getter
 @Setter
@@ -22,7 +23,7 @@ public class User {
     private Role role;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "stage")
+    @Column(name = "stage", nullable = true)
     private Stage stage;
 
     @Column(name = "number_of_invited_users", nullable = false)
