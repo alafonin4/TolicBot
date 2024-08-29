@@ -1364,6 +1364,7 @@ public class TelBot extends TelegramLongPollingBot {
         if (callbackData.startsWith("addRes_")) {
             String number = callbackData.substring(7);
             long indOfProductRes = Integer.parseInt(number);
+            System.out.println(callbackData + " " + indOfProductRes);
 
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
