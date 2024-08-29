@@ -142,6 +142,7 @@ public class TelBot extends TelegramLongPollingBot {
             userRepository.save(i);
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
+            System.out.println("update");
         }
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
@@ -816,6 +817,7 @@ public class TelBot extends TelegramLongPollingBot {
             long indOfProductRes = Integer.parseInt(number);
 
             var pr = productRepository.findById(indOfProductRes).get();
+            System.out.println();
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToAddToRes);
@@ -1372,6 +1374,7 @@ public class TelBot extends TelegramLongPollingBot {
                 System.out.println(i.toString());
             }
             userRepository.save(u);
+            sendMessage(chatId, "Введите число бронирований, которое хотите добавить.");
             return;
         }
         if (callbackData.startsWith("subRes_")) {
@@ -1383,6 +1386,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToSubToRes);
             userRepository.save(u);
+            sendMessage(chatId, "Введите число бронирований, которое хотите убрать.");
             return;
         }
         if (callbackData.startsWith("order_")) {
