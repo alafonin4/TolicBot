@@ -92,6 +92,7 @@ public class TelBot extends TelegramLongPollingBot {
     Map<Long, List<Image>> curImageInReview;
     Map<Long, Product> currProdToAdd;
     Map<Long, Product> currProdToSub;
+    Map<Long, Review> currReviewInModeration;
 
     public TelBot(BotConfig config) {
         this.config = config;
@@ -111,6 +112,7 @@ public class TelBot extends TelegramLongPollingBot {
         this.program = new ArrayList<>();
         this.currProdToAdd = new HashMap<>();
         this.currProdToSub = new HashMap<>();
+        this.currReviewInModeration = new HashMap<>();
         this.program.add("А пока давай я расскажу тебе про программу!");
         this.program.add("Professor SkinGood – это уходовая косметика, вдохновленная лучшими достижениями Кореи. " +
                 "В программе ты можешь попробовать 11 классных продуктов, которые Профессор создал специально для тебя.");
@@ -1338,6 +1340,14 @@ public class TelBot extends TelegramLongPollingBot {
                         p.setCountAvailable(p.getCountAvailable() - i);
                         productRepository.save(p);
                         break;
+                    } else if (user.getStageOfUsing().equals(Stage.EnterCountOfStarsFromReview) && !messageText.startsWith("/")) {
+                        User user2 = userRepository.findById(chatId).get();
+                        user2.setStageOfUsing(Stage.DoingNothing);
+                        userRepository.save(user2);
+                        var countOfStars = Integer.parseInt(messageText);
+                        var re = currReviewInModeration.get(chatId);
+                        re.setStars(countOfStars);
+                        currReviewInModeration.put(chatId, null);
                     }
                     sendMessage(chatId, "Извините, команда не распознана.");
                     break;
@@ -1484,9 +1494,10 @@ public class TelBot extends TelegramLongPollingBot {
             User user2 = userRepository.findById(chatId).get();
             user2.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(user2);
-            sendMessage(u.getChatId(), "\uD83C\uDF8A Модерация всех " +
-                    "твоих отзывов пройдена! \uD83C\uDF8A\n");
-            showListOfUnseenReviews(chatId);
+            sendMessage(u.getChatId(), "Модерация твоего отзыва " +
+                    "к " + or.getProductReservation().getProduct().getTitle() + "\n");
+            currReviewInModeration.putIfAbsent(chatId, or);
+            chooseCountOfStarsFromReview(chatId);
             return;
         }
         if (callbackData.startsWith("Disapprover_")) {
@@ -1746,6 +1757,12 @@ public class TelBot extends TelegramLongPollingBot {
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
         }
+    }
+    private void chooseCountOfStarsFromReview(long chatId) {
+        sendMessage(chatId, "Введите число звезд с отзыва");
+        User u = userRepository.findById(chatId).get();
+        u.setStageOfUsing(Stage.EnterCountOfStarsFromReview);
+        userRepository.save(u);
     }
     private void chooseProductToAddReservation(long chatId) {
         StringBuilder text = new StringBuilder();
@@ -2571,6 +2588,7 @@ public class TelBot extends TelegramLongPollingBot {
             orderImage.setImage(im);
             reviewImageRepository.save(orderImage);
         }
+        sendMessage(chatId, "Вы отправили отзыв к " + or.getProductReservation().getProduct().getTitle() + ".");
     }
     private void createOrder(long chatId, Integer ind) {
         Order or = new Order();
