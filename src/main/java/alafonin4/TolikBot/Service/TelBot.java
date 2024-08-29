@@ -131,18 +131,18 @@ public class TelBot extends TelegramLongPollingBot {
                 "\uD83C\uDFC63 место: Десять призов – сертификаты в OZON на 500 рублей\n" +
                 "\n" +
                 "Пробуй больше продуктов, создавай подробные отзывы и выигрывай призы!");
+    }
+
+    @Override
+    public void onUpdateReceived(Update update) {
         var users = userRepository.findAll();
         for (var i:
-             users) {
+                users) {
             i.setStage(null);
             userRepository.save(i);
             i.setStage(Stage.DoingNothing);
             userRepository.save(i);
         }
-    }
-
-    @Override
-    public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
