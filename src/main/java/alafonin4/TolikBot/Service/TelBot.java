@@ -1332,8 +1332,8 @@ public class TelBot extends TelegramLongPollingBot {
                         productRepository.save(p);
                         break;
                     } else if (user.getStageOfUsing().equals(Stage.EnterToSubToRes) && !messageText.startsWith("/")) {
-                        var p = currProdToAdd.get(chatId);
-                        currProdToAdd.put(chatId, null);
+                        var p = currProdToSub.get(chatId);
+                        currProdToSub.put(chatId, null);
                         var i = Integer.parseInt(messageText);
                         p.setCountAvailable(p.getCountAvailable() - i);
                         productRepository.save(p);
@@ -1364,7 +1364,6 @@ public class TelBot extends TelegramLongPollingBot {
         if (callbackData.startsWith("addRes_")) {
             String number = callbackData.substring(7);
             long indOfProductRes = Integer.parseInt(number);
-            System.out.println(callbackData + " " + indOfProductRes);
 
             var pr = productRepository.findById(indOfProductRes).get();
             currProdToAdd.putIfAbsent(chatId, pr);
