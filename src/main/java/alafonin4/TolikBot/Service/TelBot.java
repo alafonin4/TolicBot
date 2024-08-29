@@ -1230,6 +1230,7 @@ public class TelBot extends TelegramLongPollingBot {
                     ChangeListOfProducts(chatId);
                     break;
                 default:
+                    System.out.println("todo: " + user.getStageOfUsing());
                     if (user.getStageOfUsing().equals(Stage.EnterFirstName) && !messageText.startsWith("/")) {
                         SetUserName(chatId, messageText);
                         greatings(chatId);
@@ -1368,11 +1369,6 @@ public class TelBot extends TelegramLongPollingBot {
             currProdToAdd.putIfAbsent(chatId, pr);
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToAddToRes);
-            var e = Stage.values();
-            for (var i:
-                 e) {
-                System.out.println(i.toString());
-            }
             userRepository.save(u);
             sendMessage(chatId, "Введите число бронирований, которое хотите добавить.");
             return;
