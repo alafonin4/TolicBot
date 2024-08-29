@@ -131,6 +131,14 @@ public class TelBot extends TelegramLongPollingBot {
                 "\uD83C\uDFC63 место: Десять призов – сертификаты в OZON на 500 рублей\n" +
                 "\n" +
                 "Пробуй больше продуктов, создавай подробные отзывы и выигрывай призы!");
+        var users = userRepository.findAll();
+        for (var i:
+             users) {
+            i.setStage(null);
+            userRepository.save(i);
+            i.setStage(Stage.DoingNothing);
+            userRepository.save(i);
+        }
     }
 
     @Override
