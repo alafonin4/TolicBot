@@ -135,7 +135,7 @@ public class TelBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        var users = userRepository.findAll();
+        /*var users = userRepository.findAll();
         for (var i:
                 users) {
             i.setStageOfUsing(null);
@@ -143,7 +143,7 @@ public class TelBot extends TelegramLongPollingBot {
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
             System.out.println("update");
-        }
+        }*/
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
@@ -1371,6 +1371,7 @@ public class TelBot extends TelegramLongPollingBot {
             User u = userRepository.findById(chatId).get();
             u.setStageOfUsing(Stage.EnterToAddToRes);
             userRepository.save(u);
+            System.out.println(u.getStageOfUsing());
             sendMessage(chatId, "Введите число бронирований, которое хотите добавить.");
             return;
         }
