@@ -25,6 +25,9 @@ public class Product {
     @Column(name = "shop", nullable = false)
     private String shop;
 
+    @Column(name = "url")
+    private String url;
+
     @Column(name = "count", nullable = false)
     private Integer countAvailable;
 }
