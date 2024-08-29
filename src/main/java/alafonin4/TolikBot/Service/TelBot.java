@@ -1884,7 +1884,7 @@ public class TelBot extends TelegramLongPollingBot {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(text.toString());
-        var markup = KeyboardMarkupBuilder.setReplyKeyboardWithRaw(buttons);
+        var markup = KeyboardMarkupBuilder.setKeyboardWithRaw(buttons);
         sendMessage.setReplyMarkup(markup);
         try {
             execute(sendMessage);
