@@ -24,5 +24,7 @@ public enum Stage {
     ChangingList,
     EnterToAddToRes,
     EnterToSubToRes,
-    EnterUrlOfItemToAdd
+    EnterUrlOfItemToAdd,
+    EnterCountOfStarsFromReview,
+
 }
