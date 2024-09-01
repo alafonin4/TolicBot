@@ -30,4 +30,7 @@ public class Product {
 
     @Column(name = "count", nullable = false)
     private Integer countAvailable;
+
+    @Column(name = "blockAll", nullable = true)
+    private Boolean needBlockAll;
 }
