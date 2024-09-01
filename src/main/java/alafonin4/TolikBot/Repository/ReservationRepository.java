@@ -16,5 +16,5 @@ public interface ReservationRepository extends CrudRepository<Reservation, Long>
 
     List<Reservation> findByUserAndStatus(User u, Status unseen);
 
-    List<Reservation> findAllByUserId(long chatId);
+    List<Reservation> findAllByUserChatId(long chatId);
 }
