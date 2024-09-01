@@ -1448,7 +1448,7 @@ public class TelBot extends TelegramLongPollingBot {
             String number = callbackData.substring(5);
             long indOfProduct = Integer.parseInt(number);
             Product pr = productRepository.findById(indOfProduct).get();
-            var l = reservationRepository.findAllByUserId(chatId);
+            var l = reservationRepository.findAllByUserChatId(chatId);
             for (var i:
                     l) {
                 var prodres = productReservationRepository.findByReservation(i).get(0);
