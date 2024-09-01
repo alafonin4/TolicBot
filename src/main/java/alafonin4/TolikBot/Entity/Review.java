@@ -28,5 +28,8 @@ public class Review {
     @OneToOne
     @JoinColumn(name = "prod_res_id", referencedColumnName = "Id")
     private ProductReservation productReservation;
+
+    @Column(name = "stars", nullable = true)
+    private Integer stars;
 }
 
