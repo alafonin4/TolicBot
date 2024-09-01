@@ -1458,6 +1458,7 @@ public class TelBot extends TelegramLongPollingBot {
                         sendMessage(chatId, "Вы уже бронировали данный товар, вы можете делать заказ.");
                         return;
                     }
+                    continue;
                 }
                 if (prod.getNeedBlockAll().equals(true)) {
                     if (prodres.getProduct().getShop().equals(pr.getShop())
