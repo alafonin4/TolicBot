@@ -1447,11 +1447,30 @@ public class TelBot extends TelegramLongPollingBot {
         if (callbackData.startsWith("shop_")) {
             String number = callbackData.substring(5);
             long indOfProduct = Integer.parseInt(number);
+            Product pr = productRepository.findById(indOfProduct).get();
+            var l = reservationRepository.findAllByUserId(chatId);
+            for (var i:
+                    l) {
+                var prodres = productReservationRepository.findByReservation(i).get(0);
+                Product prod = prodres.getProduct();
+                if (prod.getNeedBlockAll() == null || prod.getNeedBlockAll().equals(false)) {
+                    if (prod.getTitle().equals(pr.getTitle())) {
+                        sendMessage(chatId, "Вы уже бронировали данный товар, вы можете делать заказ.");
+                        return;
+                    }
+                }
+                if (prod.getNeedBlockAll().equals(true)) {
+                    if (prodres.getProduct().getShop().equals(pr.getShop())
+                            && prodres.getProduct().getTitle().equals(pr.getTitle())) {
+                        sendMessage(chatId, "Вы уже бронировали данный товар, вы можете делать заказ.");
+                        return;
+                    }
+                }
+            }
 
             Reservation r = new Reservation();
             r.setUser(userRepository.findById(chatId).get());
 
-            Product pr = productRepository.findById(indOfProduct).get();
             int count = pr.getCountAvailable() - 1;
             pr.setCountAvailable(count);
             productRepository.save(pr);
@@ -1753,9 +1772,62 @@ public class TelBot extends TelegramLongPollingBot {
             case "subReservation":
                 chooseProductToSubReservation(chatId);
                 break;
+            case "blockProduct":
+                blocItems(chatId);
+                break;
+            case "block1":
+                productRevers(chatId, false);
+                sendMessage(chatId, "Заблокировано");
+                break;
+            case "block2":
+                productRevers(chatId, true);
+                sendMessage(chatId, "Заблокировано");
+                break;
             default:
                 sendMessage(chatId, "Извините, команда не распознана.");
                 break;
+        }
+    }
+    private void productRevers(long chatId, boolean is) {
+        var products = productRepository.findAllByNameOfProject(nameOfProject);
+        for (var i:
+                products) {
+            if (i.getNeedBlockAll() == null || i.getNeedBlockAll().equals(is)) {
+                i.setNeedBlockAll(!is);
+            }
+        }
+    }
+    private void blocItems(long chatId) {
+        var products = productRepository.findAllByNameOfProject(nameOfProject);
+        boolean need = true;
+        for (var i:
+             products) {
+            if (i.getNeedBlockAll() == null || i.getNeedBlockAll().equals(false)) {
+                need = false;
+                i.setNeedBlockAll(false);
+            }
+        }
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        List<Button> buttons = new ArrayList<>();
+        Button prButton;
+        if (!need) {
+            sendMessage.setText("Если вы хотите заблокировать бронирование товара в магазине, " +
+                    "где был забронирован товар, нажмите на кнопку");
+            prButton = new Button("Заблокировать", "block1");
+        } else {
+            sendMessage.setText("Если вы хотите заблокировать бронирование товара " +
+                    "в целом после 1 бронирования, нажмите на кнопку");
+            prButton = new Button("Заблокировать", "block2");
+        }
+        buttons.add(prButton);
+        var markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+        sendMessage.setReplyMarkup(markup);
+
+        try {
+            execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
     private void chooseCountOfStarsFromReview(long chatId) {
@@ -2701,16 +2773,21 @@ public class TelBot extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setText(text.toString());
         message.setChatId(String.valueOf(chatId));
-        List<Button> buttons = new ArrayList<>();
+        List<List<Button>> buttons = new ArrayList<>();
+        List<Button> row1 = new ArrayList<>();
         Button orderButton = new Button("Добавить новый товар", "addItem");
         Button questionButton = new Button("Скрыть товар", "deleteItem");
         Button questButton = new Button("+бронь", "addReservation");
         Button quesButton = new Button("-бронь", "subReservation");
-        buttons.add(orderButton);
-        buttons.add(questionButton);
-        buttons.add(questButton);
-        buttons.add(quesButton);
-        InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboard(buttons);
+        row1.add(orderButton);
+        row1.add(questionButton);
+        row1.add(questButton);
+        row1.add(quesButton);
+        List<Button> row2 = new ArrayList<>();
+        Button bloc = new Button("Блокировать товары", "blockProduct");
+        row2.add(bloc);
+        buttons.add(row2);
+        InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboardWithRaw(buttons);
         message.setReplyMarkup(markup);
         try {
             execute(message);
