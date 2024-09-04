@@ -2331,69 +2331,69 @@ public class TelBot extends TelegramLongPollingBot {
         Sheet sheet4 = workbook.createSheet("Отчет по пользователям");
         var list = createUsersListHeader(sheet4);
         int indexOfUser = 2;
-        Row row = sheet4.createRow(indexOfUser);
-        User user = ((List<User>) userRepository.findAll()).get(0);
-        var prods = list.keySet();
-        for (var i:
-             prods) {
-            System.out.println(i.getTitle() + " " + i.getShop() + " " + i.getNeedBlockAll() + i.getCountAvailable());
-        }
-        System.out.println(user.getUserName());
-        for (var pr:
-             prods) {
-            List<Order> ors = (List<Order>) orderRepository.findAll();
+        List<User> users = (List<User>) userRepository.findAll();
+        for (var user:
+             users) {
+            Row row = sheet4.createRow(indexOfUser);
+            indexOfUser++;
+            row.createCell(0).setCellValue(user.getChatId());
+            row.createCell(1).setCellValue(user.getUserName());
+            var prods = list.keySet();
+            for (var pr:
+                    prods) {
+            /*List<Order> ors = (List<Order>) orderRepository.findAll();
             List<Order> orderList = new ArrayList<>();
             for (var o:
                  ors) {
                 if (Objects.equals(o.getUser().getChatId(), user.getChatId())) {
                     orderList.add(o);
                 }
-            }
-            var orders = orderRepository.findAllByUserChatId(user.getChatId());
-            System.out.println(orderList.size());
-            for (var or:
-                 orders) {
-                if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
-                        && or.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
-                    int indOfStart = list.get(pr);
-                    row.createCell(indOfStart).setCellValue(or.getProductReservation().getCost());
-                    StringBuilder urls = new StringBuilder();
-                    int k = 0;
-                    for (var im :
-                            orderImageRepository.findByOrder(or)) {
-                        if (k == orderImageRepository.findByOrder(or).size() - 1) {
-                            urls.append(im.getImage().getUrlToDisk());
-                        } else {
-                            urls.append(im.getImage().getUrlToDisk());
+            }*/
+                var orders = orderRepository.findAllByUserChatId(user.getChatId());
+                for (var or:
+                        orders) {
+                    if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
+                            && or.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
+                        int indOfStart = list.get(pr);
+                        row.createCell(indOfStart).setCellValue(or.getProductReservation().getCost());
+                        StringBuilder urls = new StringBuilder();
+                        int k = 0;
+                        for (var im :
+                                orderImageRepository.findByOrder(or)) {
+                            if (k == orderImageRepository.findByOrder(or).size() - 1) {
+                                urls.append(im.getImage().getUrlToDisk());
+                            } else {
+                                urls.append(im.getImage().getUrlToDisk());
+                            }
                         }
+                        String u = urls.toString();
+                        row.createCell(indOfStart + 1).setCellValue(u);
                     }
-                    String u = urls.toString();
-                    row.createCell(indOfStart + 1).setCellValue(u);
                 }
-            }
-            var reviews = reviewRepository.findAllByUserChatId(user.getChatId());
-            System.out.println(reviews.size());
-            for (var review:
-                    reviews) {
-                if (review.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
-                        && review.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
-                    int indOfStart = list.get(pr);
-                    row.createCell(indOfStart + 2).setCellValue(review.getStars());
-                    StringBuilder urls = new StringBuilder();
-                    int k = 0;
-                    for (var reviewImage :
-                            reviewImageRepository.findByReview(review)) {
-                        if (k == reviewImageRepository.findByReview(review).size() - 1) {
-                            urls.append(reviewImage.getImage().getUrlToDisk());
-                        } else {
-                            urls.append(reviewImage.getImage().getUrlToDisk());
+                var reviews = reviewRepository.findAllByUserChatId(user.getChatId());
+                System.out.println(reviews.size());
+                for (var review:
+                        reviews) {
+                    if (review.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
+                            && review.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
+                        int indOfStart = list.get(pr);
+                        row.createCell(indOfStart + 2).setCellValue(review.getStars());
+                        StringBuilder urls = new StringBuilder();
+                        int k = 0;
+                        for (var reviewImage :
+                                reviewImageRepository.findByReview(review)) {
+                            if (k == reviewImageRepository.findByReview(review).size() - 1) {
+                                urls.append(reviewImage.getImage().getUrlToDisk());
+                            } else {
+                                urls.append(reviewImage.getImage().getUrlToDisk());
+                            }
                         }
+                        String u = urls.toString();
+                        row.createCell(indOfStart + 3).setCellValue("Да");
+                        row.createCell(indOfStart + 4).setCellValue(u);
+                        row.createCell(indOfStart + 5).setCellValue("-");
+                        row.createCell(indOfStart + 6).setCellValue("-");
                     }
-                    String u = urls.toString();
-                    row.createCell(indOfStart + 3).setCellValue("Да");
-                    row.createCell(indOfStart + 4).setCellValue(u);
-                    row.createCell(indOfStart + 5).setCellValue("-");
-                    row.createCell(indOfStart + 6).setCellValue("-");
                 }
             }
         }
