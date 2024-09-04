@@ -138,14 +138,14 @@ public class TelBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        var users = userRepository.findAll();
+        /*var users = userRepository.findAll();
         for (var i:
                 users) {
             i.setStageOfUsing(null);
             userRepository.save(i);
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
-        }
+        }*/
         updateInfo(update.getMessage());
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
