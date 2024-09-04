@@ -146,7 +146,6 @@ public class TelBot extends TelegramLongPollingBot {
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
         }*/
-        updateInfo(update.getMessage());
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
@@ -155,6 +154,7 @@ public class TelBot extends TelegramLongPollingBot {
         }
         if (update.hasMessage() && update.getMessage().hasPhoto()) {
             long chatId = update.getMessage().getChatId();
+            updateInfo(chatId);
             User user = userRepository.findById(chatId).get();
             if (true || user.getRole().equals(Role.Customer)) {
                 if (user.getStageOfUsing().equals(Stage.EnterImageOrder) || user.getStageOfUsing().equals(Stage.EnterImageReview)) {
@@ -256,6 +256,7 @@ public class TelBot extends TelegramLongPollingBot {
             }
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             long chatId = update.getMessage().getChatId();
+            updateInfo(chatId);
             String messageText = update.getMessage().getText();
 
             User user = new User();
@@ -287,6 +288,7 @@ public class TelBot extends TelegramLongPollingBot {
             var m = update.getCallbackQuery().getMessage();
             long messageId = update.getCallbackQuery().getMessage().getMessageId();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
+            updateInfo(chatId);
 
             User usern = userRepository.findById(chatId).get();
             if (usern.getRole().equals(Role.Customer)) {
@@ -3510,15 +3512,14 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-    private void updateInfo(Message msg) {
-        if (userRepository.findById(msg.getChatId()).isPresent()) {
+    private void updateInfo(long chatId) {
+        if (userRepository.findById(chatId).isPresent()) {
             System.out.println("updateInfo");
-            var chatId = msg.getChatId();
-            currentInds.put(chatId, 0);
-            currentProdResInReview.put(chatId, new ArrayList<>());
-            currentProdResInOrder.put(chatId, new ArrayList<>());
-            curProdToR.put(chatId, new ArrayList<>());
-            hasInvited.put(chatId, true);
+            currentInds.computeIfAbsent(chatId, k -> 0);
+            currentProdResInReview.computeIfAbsent(chatId, k -> new ArrayList<>());
+            currentProdResInOrder.computeIfAbsent(chatId, k -> new ArrayList<>());
+            curProdToR.computeIfAbsent(chatId, k -> new ArrayList<>());
+            hasInvited.computeIfAbsent(chatId, k -> true);
         }
     }
     public void registerUser(Message msg) {
