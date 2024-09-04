@@ -2341,8 +2341,16 @@ public class TelBot extends TelegramLongPollingBot {
         System.out.println(user.getUserName());
         for (var pr:
              prods) {
+            List<Order> ors = (List<Order>) orderRepository.findAll();
+            List<Order> orderList = new ArrayList<>();
+            for (var o:
+                 ors) {
+                if (Objects.equals(o.getUser().getChatId(), user.getChatId())) {
+                    orderList.add(o);
+                }
+            }
             var orders = orderRepository.findAllByUserChatId(user.getChatId());
-            System.out.println(orders.size());
+            System.out.println(orderList.size());
             for (var or:
                  orders) {
                 if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
