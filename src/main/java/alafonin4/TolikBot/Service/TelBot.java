@@ -2355,7 +2355,11 @@ public class TelBot extends TelegramLongPollingBot {
                     if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
                             && or.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
                         int indOfStart = list.get(pr);
-                        row.createCell(indOfStart).setCellValue(or.getProductReservation().getCost());
+                        if (or.getProductReservation().getCost() != null) {
+                            row.createCell(indOfStart).setCellValue(or.getProductReservation().getCost());
+                        } else {
+                            row.createCell(indOfStart).setCellValue("-");
+                        }
                         StringBuilder urls = new StringBuilder();
                         int k = 0;
                         for (var im :
