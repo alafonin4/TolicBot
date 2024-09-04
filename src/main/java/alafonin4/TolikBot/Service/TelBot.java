@@ -2338,9 +2338,11 @@ public class TelBot extends TelegramLongPollingBot {
              prods) {
             System.out.println(i.getTitle() + " " + i.getShop() + " " + i.getNeedBlockAll() + i.getCountAvailable());
         }
+        System.out.println(user.getUserName());
         for (var pr:
              prods) {
             var orders = orderRepository.findAllByUserChatId(user.getChatId());
+            System.out.println(orders.size());
             for (var or:
                  orders) {
                 if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
@@ -2362,6 +2364,7 @@ public class TelBot extends TelegramLongPollingBot {
                 }
             }
             var reviews = reviewRepository.findAllByUserChatId(user.getChatId());
+            System.out.println(reviews.size());
             for (var review:
                     reviews) {
                 if (review.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
