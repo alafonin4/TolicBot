@@ -2,6 +2,7 @@ package alafonin4.TolikBot.Service;
 
 import alafonin4.TolikBot.Button;
 import alafonin4.TolikBot.Entity.*;
+import alafonin4.TolikBot.Entity.Stage;
 import alafonin4.TolikBot.Entity.User;
 import alafonin4.TolikBot.KeyboardMarkupBuilder;
 import alafonin4.TolikBot.Repository.*;
