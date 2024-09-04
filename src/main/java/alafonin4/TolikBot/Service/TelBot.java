@@ -138,14 +138,15 @@ public class TelBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        /*var users = userRepository.findAll();
+        var users = userRepository.findAll();
         for (var i:
                 users) {
             i.setStageOfUsing(null);
             userRepository.save(i);
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
-        }*/
+        }
+        updateInfo(update.getMessage());
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
@@ -3508,8 +3509,19 @@ public class TelBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+    private void updateInfo(Message msg) {
+        if (userRepository.findById(msg.getChatId()).isPresent()) {
+            System.out.println("updateInfo");
+            var chatId = msg.getChatId();
+            currentInds.put(chatId, 0);
+            currentProdResInReview.put(chatId, new ArrayList<>());
+            currentProdResInOrder.put(chatId, new ArrayList<>());
+            curProdToR.put(chatId, new ArrayList<>());
+            hasInvited.put(chatId, true);
+        }
+    }
     public void registerUser(Message msg) {
-        if(userRepository.findById(msg.getChatId()).isEmpty()) {
+        if (userRepository.findById(msg.getChatId()).isEmpty()) {
 
             var chatId = msg.getChatId();
             var chat = msg.getChat();
