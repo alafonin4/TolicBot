@@ -2334,6 +2334,10 @@ public class TelBot extends TelegramLongPollingBot {
         Row row = sheet4.createRow(indexOfUser);
         User user = ((List<User>) userRepository.findAll()).get(0);
         var prods = list.keySet();
+        for (var i:
+             prods) {
+            System.out.println(i.getTitle() + " " + i.getShop() + " " + i.getNeedBlockAll() + i.getCountAvailable());
+        }
         for (var pr:
              prods) {
             var orders = orderRepository.findAllByUserChatId(user.getChatId());
