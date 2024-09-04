@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -1997,6 +1998,7 @@ public class TelBot extends TelegramLongPollingBot {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         createSummaryReservationList(workbook);
+        createUsersList(workbook);
         createOrdersList(workbook);
         createReviewList(workbook);
         createQuestionsList(workbook);
@@ -2283,9 +2285,50 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
-    private void createUsersList(Workbook workbook) {
+    private void createUsersListHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        Row hRow = sheet.createRow(1);
+        headerRow.createCell(0).setCellValue("User Id bot");
+        sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
+        headerRow.createCell(1).setCellValue("Username");
+        int ind = 2;
+        int count = 7;
+        List<String> strings = new ArrayList<>();
+        strings.add("Стоимость по чеку");
+        strings.add("Ссылка на чек");
+        strings.add("Сколько звезд в отзыве");
+        strings.add("Есть UGC");
+        strings.add("Ссылка на отзыв");
+        strings.add("Сертификат");
+        strings.add("Сумма сертификата");
 
+        var list = productRepository.findAllByOrderByShopAsc();
+        for (var i:
+             list) {
+            String title = i.getTitle() + " " + i.getShop();
+            headerRow.createCell(ind).setCellValue(title);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, ind, ind + count));
+            hRow.createCell(ind).setCellValue(strings.get(0));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(1));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(2));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(3));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(4));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(5));
+            ind++;
+            hRow.createCell(ind).setCellValue(strings.get(6));
+            ind++;
+        }
     }
+    private void createUsersList(Workbook workbook) {
+        Sheet sheet4 = workbook.createSheet("Отчет по пользователям");
+        createUsersListHeader(sheet4);
+    }
+
     private void createQuestionsList(Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Отчет по вопросам");
         createQuestionHeader(sheet4);
