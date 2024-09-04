@@ -137,15 +137,14 @@ public class TelBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        /*var users = userRepository.findAll();
+        var users = userRepository.findAll();
         for (var i:
                 users) {
             i.setStageOfUsing(null);
             userRepository.save(i);
             i.setStageOfUsing(Stage.DoingNothing);
             userRepository.save(i);
-            System.out.println("update");
-        }*/
+        }
         if (update.hasMessage() && update.hasPollAnswer()) {
             System.out.println("poll");
             long chatId = update.getMessage().getChatId();
@@ -2284,7 +2283,7 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
-    private void createSummaryQuestionList(Workbook workbook) {
+    private void createUsersList(Workbook workbook) {
 
     }
     private void createQuestionsList(Workbook workbook) {
@@ -2784,6 +2783,7 @@ public class TelBot extends TelegramLongPollingBot {
         row1.add(questionButton);
         row1.add(questButton);
         row1.add(quesButton);
+        buttons.add(row1);
         List<Button> row2 = new ArrayList<>();
         Button bloc = new Button("Блокировать товары", "blockProduct");
         row2.add(bloc);
