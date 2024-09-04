@@ -2321,7 +2321,7 @@ public class TelBot extends TelegramLongPollingBot {
             hRow.createCell(ind).setCellValue(strings.get(5));
             ind++;
             hRow.createCell(ind).setCellValue(strings.get(6));
-            ind++;
+            ind += 2;
         }
     }
     private void createUsersList(Workbook workbook) {
