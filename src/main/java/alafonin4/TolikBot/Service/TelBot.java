@@ -2285,7 +2285,7 @@ public class TelBot extends TelegramLongPollingBot {
             }
         }
     }
-    private void createUsersListHeader(Sheet sheet) {
+    private Map<Product, Integer> createUsersListHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
         Row hRow = sheet.createRow(1);
         headerRow.createCell(0).setCellValue("User Id bot");
@@ -2303,8 +2303,10 @@ public class TelBot extends TelegramLongPollingBot {
         strings.add("Сумма сертификата");
 
         var list = productRepository.findAllByOrderByShopAsc();
+        Map<Product, Integer> productIntegerMap = new HashMap<>();
         for (var i:
              list) {
+            productIntegerMap.put(i, ind);
             String title = i.getTitle() + " " + i.getShop();
             headerRow.createCell(ind).setCellValue(title);
             sheet.addMergedRegion(new CellRangeAddress(0, 0, ind, ind + count));
@@ -2323,10 +2325,64 @@ public class TelBot extends TelegramLongPollingBot {
             hRow.createCell(ind).setCellValue(strings.get(6));
             ind += 2;
         }
+        return productIntegerMap;
     }
     private void createUsersList(Workbook workbook) {
         Sheet sheet4 = workbook.createSheet("Отчет по пользователям");
-        createUsersListHeader(sheet4);
+        var list = createUsersListHeader(sheet4);
+        int indexOfUser = 2;
+        Row row = sheet4.createRow(indexOfUser);
+        User user = ((List<User>) userRepository.findAll()).get(0);
+        var prods = list.keySet();
+        for (var pr:
+             prods) {
+            var orders = orderRepository.findAllByUserChatId(user.getChatId());
+            for (var or:
+                 orders) {
+                if (or.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
+                        && or.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
+                    int indOfStart = list.get(pr);
+                    row.createCell(indOfStart).setCellValue(or.getProductReservation().getCost());
+                    StringBuilder urls = new StringBuilder();
+                    int k = 0;
+                    for (var im :
+                            orderImageRepository.findByOrder(or)) {
+                        if (k == orderImageRepository.findByOrder(or).size() - 1) {
+                            urls.append(im.getImage().getUrlToDisk());
+                        } else {
+                            urls.append(im.getImage().getUrlToDisk());
+                        }
+                    }
+                    String u = urls.toString();
+                    row.createCell(indOfStart + 1).setCellValue(u);
+                }
+            }
+            var reviews = reviewRepository.findAllByUserChatId(user.getChatId());
+            for (var review:
+                    reviews) {
+                if (review.getProductReservation().getProduct().getTitle().equals(pr.getTitle())
+                        && review.getProductReservation().getProduct().getShop().equals(pr.getShop())) {
+                    int indOfStart = list.get(pr);
+                    row.createCell(indOfStart + 2).setCellValue(review.getStars());
+                    StringBuilder urls = new StringBuilder();
+                    int k = 0;
+                    for (var reviewImage :
+                            reviewImageRepository.findByReview(review)) {
+                        if (k == reviewImageRepository.findByReview(review).size() - 1) {
+                            urls.append(reviewImage.getImage().getUrlToDisk());
+                        } else {
+                            urls.append(reviewImage.getImage().getUrlToDisk());
+                        }
+                    }
+                    String u = urls.toString();
+                    row.createCell(indOfStart + 3).setCellValue("Да");
+                    row.createCell(indOfStart + 4).setCellValue(u);
+                    row.createCell(indOfStart + 5).setCellValue("-");
+                    row.createCell(indOfStart + 6).setCellValue("-");
+                }
+            }
+        }
+
     }
 
     private void createQuestionsList(Workbook workbook) {
