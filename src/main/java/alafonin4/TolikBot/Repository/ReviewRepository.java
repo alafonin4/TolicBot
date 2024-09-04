@@ -13,4 +13,6 @@ public interface ReviewRepository extends CrudRepository<Review, Long> {
     Optional<Review> findFirstByStatusOrderByCreatedAtDesc(Status status);
 
     List<Review> findAllByStatus(Status unseen);
+
+    List<Review> findAllByUserChatId(Long chatId);
 }
