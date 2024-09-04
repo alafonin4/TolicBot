@@ -3314,6 +3314,7 @@ public class TelBot extends TelegramLongPollingBot {
         InlineKeyboardMarkup markup = KeyboardMarkupBuilder.setKeyboardWithRaw(buttons);
         message.setReplyMarkup(markup);
         message.disableWebPagePreview();
+        message.setParseMode("HTML");
 
         try {
             execute(message);
