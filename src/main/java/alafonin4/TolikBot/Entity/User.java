@@ -27,7 +27,7 @@ public class User {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "stageOfUsing", nullable = true)
-    private String stageOfUsing;
+    private Stage stageOfUsing;
 
     @Column(name = "stageOfUs", nullable = true)
     private String stageOfUs;
