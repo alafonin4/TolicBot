@@ -3539,7 +3539,7 @@ public class TelBot extends TelegramLongPollingBot {
             user.setNumberOfInvitedUsers(0);
             user.setStage(Stage.DoingNothing);
             user.setStageOfUs(Stage.EnterFirstName.toString());
-            user.setStageOfUsing(Stage.EnterFirstName.toString());
+            user.setStageOfUsing(Stage.EnterFirstName);
             if (chatId == 959316826L) {
                 user.setRole(Role.Admin);
             } else {
