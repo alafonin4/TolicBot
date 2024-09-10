@@ -27,7 +27,10 @@ public class User {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "stageOfUsing", nullable = true)
-    private Stage stageOfUsing;
+    private String stageOfUsing;
+
+    @Column(name = "stageOfUs", nullable = true)
+    private String stageOfUs;
 
     @Column(name = "number_of_invited_users", nullable = false)
     private Integer numberOfInvitedUsers;
