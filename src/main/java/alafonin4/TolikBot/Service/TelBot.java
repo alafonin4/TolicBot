@@ -1352,7 +1352,9 @@ public class TelBot extends TelegramLongPollingBot {
                         var countOfStars = Integer.parseInt(messageText);
                         var re = currReviewInModeration.get(chatId);
                         re.setStars(countOfStars);
+                        reviewRepository.save(re);
                         currReviewInModeration.put(chatId, null);
+                        break;
                     }
                     sendMessage(chatId, "Извините, команда не распознана.");
                     break;
@@ -2780,7 +2782,29 @@ public class TelBot extends TelegramLongPollingBot {
         li.remove(b);
         currentProdResInReview.put(chatId, li);
 
-        reviewRepository.save(or);
+        var o = reviewRepository.save(or);
+
+        var size = curImageInReview.get(chatId).size();
+        int i = 1;
+        for (var im:
+                curImageInReview.get(chatId)) {
+            var file = im.getImg();
+            StringBuilder path = new StringBuilder("review_");
+            path.append(o.getId()).append("_").append(o.getUser().getChatId());
+            if (size > 1) {
+                path.append("_").append(i);
+                i++;
+            }
+            path.append(".jpg");
+            String url = saveInYandexDisk(file,1, path.toString(), o.getProductReservation().getProduct());
+            if (url == null) {
+                im.setUrlToDisk("Не удалось сохранить на диске.");
+            } else {
+                im.setUrlToDisk(url);
+            }
+            imageRepository.save(im);
+        }
+        
         for (var im:
                 curImageInReview.get(chatId)) {
             ReviewImage orderImage = new ReviewImage();
