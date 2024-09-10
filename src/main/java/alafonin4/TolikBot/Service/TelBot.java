@@ -1237,7 +1237,7 @@ public class TelBot extends TelegramLongPollingBot {
                     ChangeListOfProducts(chatId);
                     break;
                 default:
-                    System.out.println("todo: " + user.getStageOfUs());
+                    System.out.println("todo: " + user.getStageOfUs() + " " + Stage.EnterCountOfStarsFromReview.toString() + " " + user.getStageOfUs().equals(Stage.EnterCountOfStarsFromReview.toString()));
                     if (user.getStageOfUs().equals(Stage.EnterFirstName.toString()) && !messageText.startsWith("/")) {
                         SetUserName(chatId, messageText);
                         greatings(chatId);
